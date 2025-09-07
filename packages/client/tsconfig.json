@@ -7,11 +7,12 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
+    "declarationDir": "./dist/types",
     "rootDir": "./src",
     "moduleResolution": "node",
     "composite": true,
     "allowImportingTsExtensions": false,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "target": "ES2020",
     "baseUrl": ".",
     "paths": {

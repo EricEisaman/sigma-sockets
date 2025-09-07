@@ -4,15 +4,15 @@
   "description": "High-performance WebSocket client with FlatBuffers serialization and automatic reconnection",
   "type": "module",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/types/index.d.ts"
     },
     "./node": {
       "import": "./dist/node-exports.js",
-      "types": "./dist/node-exports.d.ts"
+      "types": "./dist/types/node-exports.d.ts"
     }
   },
   "files": [
@@ -22,7 +22,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run generate:flatbuffers && vite build && tsc --declaration --emitDeclarationOnly --outDir dist",
+    "build": "npm run generate:flatbuffers && vite build && tsc --declaration --outDir dist",
     "generate:flatbuffers": "node ../../scripts/create-clean-flatbuffers.js",
     "dev": "vite build --watch",
     "test": "vitest",

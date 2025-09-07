@@ -29,9 +29,9 @@
     "verbatimModuleSyntax": true,
     "baseUrl": ".",
     "paths": {
-      "sigmasockets-client": ["../../packages/client/dist/index.d.ts"],
-      "sigmasockets-server": ["../../packages/server/dist/index.d.ts"],
-      "@sigmasockets/*": ["../../packages/*/dist"]
+      "sigmasockets-client": ["../../packages/client/dist/types/index.d.ts"],
+      "sigmasockets-server": ["../../packages/server/dist/types/index.d.ts"],
+      "@sigmasockets/*": ["../../packages/*/dist/types"]
     },
     
     // === EMIT ===

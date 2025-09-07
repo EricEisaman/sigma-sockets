@@ -213,37 +213,9 @@ class ChatServer {
           console.log('Failed to create DataMessage')
         }
       } else if (message.type() === MessageType.Connect) {
-        console.log('Processing Connect message with chat data...')
-        // The client is sending Connect messages with chat data
-        // Let's try to extract the chat data from the raw message
-        const rawData = new TextDecoder().decode(new Uint8Array(data))
-        console.log('Raw message data:', rawData)
-        
-        // Try to find JSON in the raw data
-        const jsonMatch = rawData.match(/\{[^}]*"username"[^}]*\}/)
-        if (jsonMatch) {
-          try {
-            const chatData = JSON.parse(jsonMatch[0])
-            console.log('Extracted chat data:', chatData)
-            
-            if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
-              const structuredMessage: StructuredMessage = chatData
-
-              // Broadcast the message to all connected clients
-              const messageData = new TextEncoder().encode(JSON.stringify(structuredMessage))
-              console.log('Broadcasting message to all clients...')
-              this.wsServer.broadcast(messageData)
-              
-              if (chatData.type === 'color') {
-                console.log(`✅ Color message from ${chatData.username}: ${chatData.data.message} (color: ${chatData.data.color})`)
-              } else {
-                console.log(`✅ Message from ${chatData.username}: ${chatData.data.message}`)
-              }
-            }
-          } catch (error) {
-            console.error('Error parsing chat data from Connect message:', error)
-          }
-        }
+        console.log('Processing Connect message...')
+        // Connect messages are just connection handshakes, not chat messages
+        // No need to process them as chat data
       } else {
         console.log('Not a Data or Connect message, type:', message.type())
       }
