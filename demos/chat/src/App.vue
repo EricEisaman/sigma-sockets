@@ -99,7 +99,7 @@
       <v-container fluid class="pa-4 pa-md-6 pa-lg-8">
         <v-row justify="center">
           <v-col cols="12" xl="10" lg="11" md="12">
-            <v-row class="pt-15 pt-md-10">
+            <v-row class="pt-25 pt-md-10">
               <!-- Main Chat Area -->
               <v-col cols="12" lg="8">
                 <v-card elevation="8" rounded="xl">
