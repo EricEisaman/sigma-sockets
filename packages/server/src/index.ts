@@ -114,6 +114,10 @@ export class SigmaSocketServer {
     });
   }
 
+  public getHttpServer(): Server {
+    return this.httpServer;
+  }
+
   public broadcast(data: Uint8Array, excludeClient?: string): number {
     let sentCount = 0;
     const messageId = this.generateMessageId();

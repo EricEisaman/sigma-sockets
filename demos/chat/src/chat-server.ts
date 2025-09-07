@@ -1,5 +1,4 @@
 import { SigmaSocketServer, type ClientSession } from 'sigmasockets-server'
-import { createServer } from 'http'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import * as flatbuffers from 'flatbuffers'
@@ -35,22 +34,19 @@ interface UserCountMessage {
 
 class ChatServer {
   private wsServer: SigmaSocketServer
-  private httpServer: any
   private connectedUsers: Set<string> = new Set()
   private port: number
-  private wsPort: number
 
   constructor() {
     // Use the same port for both HTTP and WebSocket in production
     this.port = parseInt(process.env['PORT'] || '3002')
-    this.wsPort = parseInt(process.env['SIGMASOCKETS_WS_PORT'] || process.env['PORT'] || '3002')
     
-    console.log(`🔧 Port configuration: HTTP=${this.port}, WebSocket=${this.wsPort}`)
+    console.log(`🔧 Port configuration: HTTP=${this.port}, WebSocket=${this.port}`)
     console.log(`🔧 Environment: PORT=${process.env['PORT']}, SIGMASOCKETS_WS_PORT=${process.env['SIGMASOCKETS_WS_PORT']}`)
     console.log('Creating SigmaSocketServer...')
     try {
       this.wsServer = new SigmaSocketServer({
-        port: this.wsPort,
+        port: this.port,
         host: process.env['SIGMASOCKETS_HOST'] || '0.0.0.0',
         heartbeatInterval: parseInt(process.env['SIGMASOCKETS_HEARTBEAT_INTERVAL'] || '30000'),
         sessionTimeout: parseInt(process.env['SIGMASOCKETS_SESSION_TIMEOUT'] || '300000'),
@@ -67,7 +63,9 @@ class ChatServer {
   }
 
   private setupHttpServer() {
-    this.httpServer = createServer((req, res) => {
+    const httpServer = this.wsServer.getHttpServer()
+    
+    httpServer.on('request', (req, res) => {
       const url = req.url || '/'
       
       // Set CORS headers
@@ -242,30 +240,17 @@ class ChatServer {
 
   public async start() {
     try {
-      // Start WebSocket server
+      // Start WebSocket server (which includes HTTP server)
       await this.wsServer.start()
-      console.log(`🚀 WebSocket server started on port ${this.wsPort}`)
-      
-      // Start HTTP server with error handling
-      this.httpServer.listen(this.port, () => {
-        console.log(`🌐 HTTP server started on port ${this.port}`)
-        console.log(`📱 Open http://localhost:${this.port} to access the chat demo`)
-        console.log(`🔌 WebSocket available at ws://localhost:${this.wsPort}`)
-      })
+      console.log(`🚀 WebSocket server started on port ${this.port}`)
+      console.log(`🌐 HTTP server started on port ${this.port}`)
+      console.log(`📱 Open http://localhost:${this.port} to access the chat demo`)
+      console.log(`🔌 WebSocket available at ws://localhost:${this.port}`)
 
-      this.httpServer.on('error', (error: any) => {
-        if (error.code === 'EADDRINUSE') {
-          console.error(`❌ Port ${this.port} is already in use. Please run 'npm run cleanup:ports' first.`)
-          process.exit(1)
-        } else {
-          console.error('HTTP server error:', error)
-          process.exit(1)
-        }
-      })
     } catch (error) {
       console.error('Failed to start chat server:', error)
       if (error instanceof Error && error.message.includes('EADDRINUSE')) {
-        console.error(`❌ Port ${this.wsPort} is already in use. Please run 'npm run cleanup:ports' first.`)
+        console.error(`❌ Port ${this.port} is already in use. Please run 'npm run cleanup:ports' first.`)
       }
       process.exit(1)
     }
@@ -273,7 +258,6 @@ class ChatServer {
 
   public stop() {
     this.wsServer.stop()
-    this.httpServer.close()
     console.log('Chat server stopped')
   }
 }
