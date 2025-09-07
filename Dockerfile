@@ -35,6 +35,11 @@ RUN cd packages/types && npm run build
 RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
+# Debug: Check if packages were built correctly
+RUN ls -la /app/packages/server/dist/ || echo "server dist not found"
+RUN ls -la /app/packages/client/dist/ || echo "client dist not found"
+RUN ls -la /app/packages/types/dist/ || echo "types dist not found"
+
 # Build chat demo (both client and server)
 # Debug: Check what's in the chat directory before build
 RUN ls -la /app/demos/chat/
