@@ -128,6 +128,11 @@ RUN cd node_modules/@sigmasockets/types && npm install --production
 RUN cd node_modules/sigmasockets-server && npm install --production
 RUN cd node_modules/sigmasockets-client && npm install --production
 
+# Copy dependencies from local packages to main node_modules for runtime access
+RUN cp -r node_modules/sigmasockets-server/node_modules/* node_modules/ 2>/dev/null || true
+RUN cp -r node_modules/sigmasockets-client/node_modules/* node_modules/ 2>/dev/null || true
+RUN cp -r node_modules/@sigmasockets/types/node_modules/* node_modules/ 2>/dev/null || true
+
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S sigmasockets -u 1001
