@@ -36,8 +36,8 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-# Use ScholarTrack approach: simple TypeScript compilation
-RUN cd demos/chat && npx tsc src/chat-server.ts --outDir dist --target es2020 --module commonjs --moduleResolution node --noEmit false --skipLibCheck true --esModuleInterop true --allowSyntheticDefaultImports true
+# Use ES modules approach consistent with project
+RUN cd demos/chat && npx tsc src/chat-server.ts --outDir dist --target es2022 --module esnext --moduleResolution node --noEmit false --skipLibCheck true --esModuleInterop true --allowSyntheticDefaultImports true
 # Then build the client
 RUN cd demos/chat && npm run build:client
 # Verify server file was created
