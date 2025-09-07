@@ -38,7 +38,8 @@ export class SigmaSocketClient {
       reconnectInterval: config.reconnectInterval ?? 1000,
       maxReconnectAttempts: config.maxReconnectAttempts ?? 10,
       heartbeatInterval: config.heartbeatInterval ?? 30000,
-      sessionTimeout: config.sessionTimeout ?? 300000
+      sessionTimeout: config.sessionTimeout ?? 300000,
+      debug: config.debug ?? false
     };
 
     // Initialize event listener sets
@@ -118,12 +119,16 @@ export class SigmaSocketClient {
 
   public send(data: Uint8Array): boolean {
     if (this.status !== ConnectionStatus.Connected || !this.ws) {
-      console.log('❌ Client not connected or WebSocket not available');
+      if (this.config.debug) {
+        console.log('❌ Client not connected or WebSocket not available');
+      }
       return false;
     }
 
     try {
-      console.log('🔧 Creating FlatBuffers message...');
+      if (this.config.debug) {
+        console.log('🔧 Creating FlatBuffers message...');
+      }
       const builder = new flatbuffers.Builder(1024 + data.length);
       const payload = DataMessage.createPayloadVector(builder, data);
       const messageId = ++this.messageIdCounter;
@@ -143,7 +148,9 @@ export class SigmaSocketClient {
 
       builder.finish(message);
       const flatbuffersData = builder.asUint8Array();
-      console.log('🔧 Sending FlatBuffers message, size:', flatbuffersData.length);
+      if (this.config.debug) {
+        console.log('🔧 Sending FlatBuffers message, size:', flatbuffersData.length);
+      }
       this.ws.send(flatbuffersData);
 
       if (this.session) {
@@ -152,7 +159,9 @@ export class SigmaSocketClient {
 
       return true;
     } catch (error) {
-      console.error('❌ FlatBuffers serialization failed:', error);
+      if (this.config.debug) {
+        console.error('❌ FlatBuffers serialization failed:', error);
+      }
       this.emit('error', error instanceof Error ? error : new Error(String(error)));
       return false;
     }

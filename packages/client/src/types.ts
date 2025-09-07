@@ -12,6 +12,7 @@ export interface SigmaSocketConfig {
   maxReconnectAttempts?: number;
   heartbeatInterval?: number;
   sessionTimeout?: number;
+  debug?: boolean;
 }
 
 export interface MessageCallback<T = Uint8Array> {
