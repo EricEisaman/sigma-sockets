@@ -166,6 +166,7 @@ class ChatServer {
       
       console.log(`Message type: ${message.type()}`)
       console.log(`Message type name:`, MessageType[message.type()])
+      console.log(`Message data type:`, message.dataType())
       
       if (message.type() === MessageType.Data) {
         console.log('Processing Data message...')
