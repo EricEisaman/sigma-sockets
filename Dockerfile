@@ -98,7 +98,7 @@ COPY --from=builder /app/packages/server/package.json ./packages/server/
 COPY --from=builder /app/packages/types/package.json ./packages/types/
 
 # Install only production dependencies for chat demo
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
