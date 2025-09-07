@@ -43,6 +43,10 @@ COPY --from=builder /app/packages/client/dist ./packages/client/dist
 COPY --from=builder /app/packages/server/dist ./packages/server/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
+# Copy TypeScript declaration files for packages (needed for ES module resolution)
+COPY --from=builder /app/packages/client/dist/types ./packages/client/dist/types
+COPY --from=builder /app/packages/server/dist/types ./packages/server/dist/types
+
 # Copy package.json files for local dependencies
 COPY --from=builder /app/packages/client/package.json ./packages/client/
 COPY --from=builder /app/packages/server/package.json ./packages/server/
