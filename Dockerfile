@@ -114,9 +114,14 @@ RUN mkdir -p node_modules/sigmasockets-client && \
     cp -r packages/client/dist node_modules/sigmasockets-client/ && \
     cp packages/client/package.json node_modules/sigmasockets-client/
 
+RUN mkdir -p node_modules/@sigmasockets/types && \
+    cp -r packages/types/dist node_modules/@sigmasockets/types/ && \
+    cp packages/types/package.json node_modules/@sigmasockets/types/
+
 # Install dependencies for local packages
 RUN cd node_modules/sigmasockets-server && npm install --production
 RUN cd node_modules/sigmasockets-client && npm install --production
+RUN cd node_modules/@sigmasockets/types && npm install --production
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
