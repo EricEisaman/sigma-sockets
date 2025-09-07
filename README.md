@@ -114,7 +114,7 @@ server.on('message', (clientId: string, data: Uint8Array) => {
 
 ## 🎮 Live Demo
 
-**Try the real-time chat demo:** [sigma-sockets-chat.onrender.com](https://sigma-sockets-chat.onrender.com)
+**Try the real-time chat demo:** [sigma-sockets.onrender.com](https://sigma-sockets.onrender.com)
 
 *Features: Real-time messaging, user count, connection status, and automatic reconnection*
 

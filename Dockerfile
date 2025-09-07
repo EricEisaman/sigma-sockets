@@ -52,6 +52,9 @@ RUN cd /app/demos/chat && npx tsc -p /app/demos/chat/tsconfig.build.json --listE
 RUN ls -la /app/demos/chat/dist/ || echo "dist directory not found"
 RUN find /app/demos/chat -name "chat-server.js" -type f || echo "chat-server.js not found anywhere"
 
+# Copy public assets to dist directory (Vite doesn't copy them automatically)
+RUN cp -r /app/demos/chat/public/* /app/demos/chat/dist/
+
 # Then build the client
 RUN cd demos/chat && npm run build:client
 # Verify server file was created
