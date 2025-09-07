@@ -102,11 +102,13 @@ class ChatServer {
       }
 
       // Serve favicon and other static files
-      if (url === '/favicon.ico' || url.startsWith('/assets/') || url.startsWith('/images/')) {
+      if (url === '/favicon.ico' || url === '/site.webmanifest' || url.startsWith('/assets/') || url.startsWith('/images/')) {
         try {
-          const assetPath = join(process.cwd(), 'dist/client', url)
+          // Remove query parameters for file path resolution
+          const cleanUrl = url.split('?')[0]
+          const assetPath = join(process.cwd(), 'dist/client', cleanUrl)
           const asset = readFileSync(assetPath)
-          const ext = url.split('.').pop()
+          const ext = cleanUrl.split('.').pop()
           const contentType = ext === 'js' ? 'application/javascript' : 
                              ext === 'css' ? 'text/css' :
                              ext === 'woff2' ? 'font/woff2' :
@@ -114,6 +116,7 @@ class ChatServer {
                              ext === 'ttf' ? 'font/ttf' :
                              ext === 'eot' ? 'application/vnd.ms-fontobject' :
                              ext === 'svg' ? 'image/svg+xml' :
+                             ext === 'webmanifest' ? 'application/manifest+json' :
                              'application/octet-stream'
           res.writeHead(200, { 'Content-Type': contentType })
           res.end(asset)
