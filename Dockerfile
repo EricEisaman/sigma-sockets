@@ -36,7 +36,10 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-RUN cd demos/chat && npm run build
+# First build the server with explicit config
+RUN cd demos/chat && npx tsc -p tsconfig.build.json
+# Then build the client
+RUN cd demos/chat && npm run build:client
 
 # Production stage
 FROM node:18-alpine AS production
@@ -46,7 +49,6 @@ WORKDIR /app
 
 # Copy built chat demo server
 COPY --from=builder /app/demos/chat/dist/chat-server.js ./dist/
-COPY --from=builder /app/demos/chat/dist/chat-server.js.map ./dist/
 
 # Copy built Vue client files
 COPY --from=builder /app/demos/chat/dist/assets ./dist/assets/
