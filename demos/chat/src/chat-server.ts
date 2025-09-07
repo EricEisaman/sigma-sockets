@@ -155,14 +155,69 @@ class ChatServer {
     })
   }
 
+  private sendErrorMessage(clientId: string, message: string) {
+    try {
+      const errorResponse = {
+        type: 'error',
+        message: message,
+        timestamp: Date.now()
+      }
+      const errorData = new TextEncoder().encode(JSON.stringify(errorResponse))
+      // Find the client session and send error message
+      const client = this.wsServer.getClient(clientId)
+      if (client) {
+        this.wsServer.sendToClient(client, errorData)
+      }
+      console.log(`📤 Sent error message to ${clientId}: ${message}`)
+    } catch (error) {
+      console.error('❌ Failed to send error message:', error)
+    }
+  }
+
   private handleMessage(clientId: string, data: Uint8Array) {
     console.log(`Received message from ${clientId}, length: ${data.length}`)
     console.log(`Raw data (first 20 bytes):`, Array.from(data.slice(0, 20)))
     
     try {
       // Try to parse as FlatBuffers message first
-      const bb = new flatbuffers.ByteBuffer(data)
-      const message = Message.getRootAsMessage(bb)
+      let message: Message
+      try {
+        const bb = new flatbuffers.ByteBuffer(data)
+        message = Message.getRootAsMessage(bb)
+        console.log(`✅ Successfully parsed FlatBuffers message`)
+      } catch (flatbuffersError) {
+        console.log(`⚠️ Failed to parse as FlatBuffers, trying as raw JSON...`)
+        console.log(`FlatBuffers error:`, flatbuffersError)
+        
+        // Fallback: try to parse as raw JSON
+        try {
+          const jsonString = new TextDecoder().decode(data)
+          console.log(`Raw JSON string: ${jsonString}`)
+          
+          const chatData = JSON.parse(jsonString)
+          console.log(`✅ Successfully parsed as JSON:`, chatData)
+          
+          // Process as direct chat message
+          if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
+            console.log('Creating structured message from JSON...')
+            const structuredMessage: StructuredMessage = chatData
+            // Broadcast the message to all connected clients
+            const messageData = new TextEncoder().encode(JSON.stringify(structuredMessage))
+            this.wsServer.broadcast(messageData)
+            return
+          } else {
+            console.log('❌ Invalid JSON message format')
+            return
+          }
+        } catch (jsonError) {
+          console.error('❌ Failed to parse as JSON:', jsonError)
+          console.error('❌ Raw data:', data)
+          
+          // Send error response to client
+          this.sendErrorMessage(clientId, 'Malformed data received')
+          return
+        }
+      }
       
       console.log(`Message type: ${message.type()}`)
       console.log(`Message type name:`, MessageType[message.type()])
@@ -171,52 +226,62 @@ class ChatServer {
       
       if (message.type() === MessageType.Data) {
         console.log('Processing Data message...')
-        const dataMessage = message.data(new DataMessage())
-        if (dataMessage) {
-          console.log('DataMessage created successfully')
+        try {
+          const dataMessage = message.data(new DataMessage())
+          if (!dataMessage) {
+            console.error('❌ Failed to create DataMessage from FlatBuffers message')
+            return
+          }
+          
+          console.log('✅ DataMessage created successfully')
           const payload = dataMessage.payloadArray()
-          if (payload) {
-            console.log('Payload array found, length:', payload.length)
-            // Decode the JSON payload
-            const jsonData = new TextDecoder().decode(payload)
-            console.log(`Raw message data: ${jsonData}`)
+          if (!payload) {
+            console.error('❌ No payload found in DataMessage')
+            return
+          }
+          
+          console.log('✅ Payload array found, length:', payload.length)
+          // Decode the JSON payload
+          const jsonData = new TextDecoder().decode(payload)
+          console.log(`Raw message data: ${jsonData}`)
+          
+          // Clean up any potential JSON issues
+          const cleanedJsonData = jsonData.trim()
+          console.log(`Cleaned JSON data: ${cleanedJsonData}`)
+          
+          let chatData
+          try {
+            chatData = JSON.parse(cleanedJsonData)
+            console.log('✅ Successfully parsed JSON payload:', chatData)
+          } catch (error) {
+            console.error('❌ Error parsing chat data from DataMessage:', error)
+            console.error('Raw JSON data:', jsonData)
+            console.error('Cleaned JSON data:', cleanedJsonData)
+            this.sendErrorMessage(clientId, 'Malformed data received')
+            return
+          }
             
-            // Clean up any potential JSON issues
-            const cleanedJsonData = jsonData.trim()
-            console.log(`Cleaned JSON data: ${cleanedJsonData}`)
-            
-            let chatData
-            try {
-              chatData = JSON.parse(cleanedJsonData)
-            } catch (error) {
-              console.error('Error parsing chat data from Connect message:', error)
-              console.error('Raw JSON data:', jsonData)
-              console.error('Cleaned JSON data:', cleanedJsonData)
-              return
-            }
-            
-            if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
-              console.log('Creating structured message...')
-              const structuredMessage: StructuredMessage = chatData
+          if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
+            console.log('Creating structured message...')
+            const structuredMessage: StructuredMessage = chatData
 
-              // Broadcast the message to all connected clients
-              const messageData = new TextEncoder().encode(JSON.stringify(structuredMessage))
-              console.log('Broadcasting message to all clients...')
-              this.wsServer.broadcast(messageData)
-              
-              if (chatData.type === 'color') {
-                console.log(`✅ Color message from ${chatData.username}: ${chatData.data.message} (color: ${chatData.data.color})`)
-              } else {
-                console.log(`✅ Message from ${chatData.username}: ${chatData.data.message}`)
-              }
+            // Broadcast the message to all connected clients
+            const messageData = new TextEncoder().encode(JSON.stringify(structuredMessage))
+            console.log('Broadcasting message to all clients...')
+            this.wsServer.broadcast(messageData)
+            
+            if (chatData.type === 'color') {
+              console.log(`✅ Color message from ${chatData.username}: ${chatData.data.message} (color: ${chatData.data.color})`)
             } else {
-              console.log('Missing username or invalid message type in chat data:', chatData)
+              console.log(`✅ Message from ${chatData.username}: ${chatData.data.message}`)
             }
           } else {
-            console.log('No payload array found')
+            console.log('❌ Missing username or invalid message type in chat data:', chatData)
           }
-        } else {
-          console.log('Failed to create DataMessage')
+        } catch (dataMessageError) {
+          console.error('❌ Error processing DataMessage:', dataMessageError)
+          this.sendErrorMessage(clientId, 'Malformed data received')
+          return
         }
       } else if (message.type() === MessageType.Connect) {
         console.log('Processing Connect message...')
@@ -230,6 +295,9 @@ class ChatServer {
     } catch (error) {
       console.error('❌ Error handling message:', error)
       console.error('Raw data:', data)
+      
+      // Send error response to client for any uncaught parsing exceptions
+      this.sendErrorMessage(clientId, 'Malformed data received')
     }
   }
 
