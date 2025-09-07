@@ -179,6 +179,13 @@ export class SigmaSocketClient {
           console.log('🔧 First 10 bytes:', Array.from(flatbuffersData.slice(0, 10)));
         }
         this.ws.send(flatbuffersData);
+        
+        // Additional debugging to verify what was actually sent
+        if (this.config.debug) {
+          console.log('🔧 WebSocket.send() called with FlatBuffers data');
+          console.log('🔧 Original data size:', data.length);
+          console.log('🔧 FlatBuffers data size:', flatbuffersData.length);
+        }
       } else {
         if (this.config.debug) {
           console.error('❌ Cannot send: WebSocket not available or no FlatBuffers data');
