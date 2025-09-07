@@ -273,7 +273,7 @@ export class SigmaSocketClient {
   }
 
   public getVersion(): string {
-    return '1.0.14';
+    return '1.0.15';
   }
 
   private onWebSocketOpen(): void {
@@ -329,6 +329,10 @@ export class SigmaSocketClient {
 
     this.setStatus(ConnectionStatus.Connected);
     this.startHeartbeat();
+    
+    if (this.config.debug) {
+      console.log('🔧 WebSocket connection established and status set to Connected');
+    }
   }
 
   private onWebSocketMessage(event: MessageEvent): void {
@@ -633,7 +637,13 @@ export class SigmaSocketClient {
 
   private setStatus(status: ConnectionStatus): void {
     if (this.status !== status) {
+      const oldStatus = this.status;
       this.status = status;
+      
+      if (this.config.debug) {
+        console.log(`🔧 Connection status changed: ${oldStatus} → ${status}`);
+      }
+      
       this.emit('connection', status);
     }
   }

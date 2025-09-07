@@ -320,7 +320,9 @@ const formattedConnectionStatus = computed(() => {
 })
 
 const isInputDisabled = computed(() => {
-  return connectionStatus.value !== 'connected'
+  const disabled = connectionStatus.value !== 'connected'
+  console.log('🔧 Input disabled state:', disabled, '(connection status:', connectionStatus.value, ')')
+  return disabled
 })
 
 const insertColorCommand = (color: string) => {
@@ -397,6 +399,7 @@ const connect = async () => {
     console.log('🔧 Client debug mode:', true)
 
     client.on('connection', (status: ConnectionStatus) => {
+      console.log('🔧 Chat demo received connection status change:', status)
       connectionStatus.value = status
     })
 
