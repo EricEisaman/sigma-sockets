@@ -32,6 +32,7 @@
 - **🛡️ Bulletproof reconnection** with exponential backoff and session recovery
 - **📦 Type-safe APIs** with full TypeScript support and IntelliSense
 - **⚡ High throughput** optimized for real-time multiplayer applications
+- **🌐 Built-in HTTP server** for serving static files and API endpoints
 - **🔧 Production ready** with comprehensive error handling and monitoring
 - **📱 Cross-platform** works in browsers, Node.js, and mobile environments
 
