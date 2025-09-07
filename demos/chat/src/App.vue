@@ -359,7 +359,11 @@ const sendMessage = () => {
   const jsonString = JSON.stringify(message)
   const encoder = new TextEncoder()
   const data = encoder.encode(jsonString)
-  client.send(data)
+  console.log('Sending message:', message)
+  console.log('JSON string:', jsonString)
+  console.log('Data bytes:', data)
+  const success = client.send(data)
+  console.log('Send result:', success)
 
   // Add to local messages
   addMessage(message)

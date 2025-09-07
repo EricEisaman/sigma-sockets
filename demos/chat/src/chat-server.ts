@@ -155,6 +155,7 @@ class ChatServer {
 
   private handleMessage(clientId: string, data: Uint8Array) {
     console.log(`Received message from ${clientId}, length: ${data.length}`)
+    console.log(`Raw data (first 20 bytes):`, Array.from(data.slice(0, 20)))
     
     try {
       // Try to parse as FlatBuffers message first
@@ -162,6 +163,7 @@ class ChatServer {
       const message = Message.getRootAsMessage(bb)
       
       console.log(`Message type: ${message.type()}`)
+      console.log(`Message type name:`, MessageType[message.type()])
       
       if (message.type() === MessageType.Data) {
         console.log('Processing Data message...')
