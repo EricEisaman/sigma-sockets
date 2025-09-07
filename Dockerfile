@@ -92,6 +92,11 @@ COPY --from=builder /app/packages/types/dist ./packages/types/dist
 COPY --from=builder /app/packages/client/dist/types ./packages/client/dist/types
 COPY --from=builder /app/packages/server/dist/types ./packages/server/dist/types
 
+# Copy package.json files for local packages (needed for module resolution)
+COPY --from=builder /app/packages/client/package.json ./packages/client/
+COPY --from=builder /app/packages/server/package.json ./packages/server/
+COPY --from=builder /app/packages/types/package.json ./packages/types/
+
 # Copy package.json and create a production version without local dependencies
 COPY --from=builder /app/demos/chat/package.json ./package.json.tmp
 
