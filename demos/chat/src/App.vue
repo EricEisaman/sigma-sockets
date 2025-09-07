@@ -324,8 +324,13 @@ const connect = async () => {
   try {
     connectionStatus.value = ConnectionStatus.Connecting
     
+    // Use production WebSocket URL or fallback to localhost for development
+    const wsUrl = import.meta.env.PROD 
+      ? `wss://${window.location.host}` 
+      : 'ws://localhost:3001'
+    
     client = new SigmaSocketClient({
-      url: 'ws://localhost:3001',
+      url: wsUrl,
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
       heartbeatInterval: 30000
