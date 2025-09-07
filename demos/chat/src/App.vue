@@ -20,16 +20,27 @@
           </v-col>
           <v-spacer></v-spacer>
           <v-col cols="auto">
-            <v-chip
-              :color="connectionStatus === 'connected' ? 'success' : 'error'"
-              size="large"
-              variant="elevated"
-            >
-              <v-icon start>
-                {{ connectionStatus === 'connected' ? 'mdi-wifi' : 'mdi-wifi-off' }}
-              </v-icon>
-              {{ formattedConnectionStatus }}
-            </v-chip>
+            <div class="d-flex align-center" style="gap: 12px;">
+              <v-chip
+                v-if="connectionStatus === 'connected'"
+                color="info"
+                size="large"
+                variant="elevated"
+              >
+                <v-icon start>mdi-account-group</v-icon>
+                {{ userCount }} user{{ userCount !== 1 ? 's' : '' }}
+              </v-chip>
+              <v-chip
+                :color="connectionStatus === 'connected' ? 'success' : 'error'"
+                size="large"
+                variant="elevated"
+              >
+                <v-icon start>
+                  {{ connectionStatus === 'connected' ? 'mdi-wifi' : 'mdi-wifi-off' }}
+                </v-icon>
+                {{ formattedConnectionStatus }}
+              </v-chip>
+            </div>
           </v-col>
         </v-row>
       </v-container>
@@ -199,7 +210,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import type { MessageType, ColorMessage, ChatMessage } from './types.js'
+import type { MessageType, ColorMessage, ChatMessage, UserCountMessage, AllMessageTypes } from './types.js'
 import { parseColorCommand } from './color-parser.js'
 import { SigmaSocketClient, ConnectionStatus } from 'sigmasockets-client'
 
@@ -216,6 +227,7 @@ const messages = ref<MessageType[]>([])
 const messageInput = ref('')
 const connectionStatus = ref<ConnectionStatus>(ConnectionStatus.Disconnected)
 const messagesContainer = ref<HTMLElement>()
+const userCount = ref<number>(0)
 
 // WebSocket client
 let client: SigmaSocketClient | null = null
@@ -327,8 +339,16 @@ const connect = async () => {
       try {
         const decoder = new TextDecoder()
         const jsonString = decoder.decode(data)
-        const message = JSON.parse(jsonString) as MessageType
-        addMessage(message)
+        const message = JSON.parse(jsonString) as AllMessageTypes
+        
+        // Handle system messages separately from chat messages
+        if (message.type === 'userCount') {
+          const userCountMessage = message as UserCountMessage
+          userCount.value = userCountMessage.count
+        } else if (message.type === 'chat' || message.type === 'color') {
+          // Only add chat messages to the messages array
+          addMessage(message as MessageType)
+        }
       } catch (error) {
         console.error('Error parsing message:', error)
       }

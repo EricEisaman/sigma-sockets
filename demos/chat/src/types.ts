@@ -27,8 +27,16 @@ export interface ChatMessage extends BaseMessage {
   }
 }
 
+// User count system message (no username/timestamp needed)
+export interface UserCountMessage {
+  type: 'userCount'
+  count: number
+}
+
 // Union type for all message types
 export type MessageType = ColorMessage | ChatMessage
+export type SystemMessage = UserCountMessage
+export type AllMessageTypes = MessageType | SystemMessage
 
 // Color parsing result
 export interface ColorParseResult {

@@ -215,9 +215,11 @@ class ChatServer {
       } else if (message.type() === MessageType.Connect) {
         console.log('Processing Connect message...')
         // Connect messages are just connection handshakes, not chat messages
-        // No need to process them as chat data
+        // No need to process them as chat data - just return early
+        return
       } else {
         console.log('Not a Data or Connect message, type:', message.type())
+        return
       }
     } catch (error) {
       console.error('❌ Error handling message:', error)
