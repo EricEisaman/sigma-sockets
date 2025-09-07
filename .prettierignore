@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.bundle.js
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Generated files
+*.d.ts
+*.tsbuildinfo
+
+# Documentation
+*.md
+!README.md
+
+# Configuration files that should not be formatted
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+.turbo/
+.cache/
+

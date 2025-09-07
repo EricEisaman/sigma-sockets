@@ -1,0 +1,48 @@
+{
+  "name": "sigmasockets-chat-demo",
+  "version": "1.0.0",
+  "description": "Chat demo showcasing SigmaSockets client and server",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build",
+    "build:server": "tsc",
+    "dev:server:watch": "tsc --watch",
+    "dev": "npm run cleanup:ports && concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "npm run build:server && node dist/chat-server.js",
+    "cleanup:ports": "./scripts/cleanup-ports.sh",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "websocket",
+    "chat",
+    "demo",
+    "sigmasockets",
+    "vite",
+    "typescript"
+  ],
+  "author": "Manus AI",
+  "license": "MIT",
+  "dependencies": {
+    "sigmasockets-client": "*",
+    "sigmasockets-server": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "concurrently": "^8.0.0",
+    "eslint": "^8.0.0",
+    "jsdom": "26.1.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

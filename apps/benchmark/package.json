@@ -1,0 +1,47 @@
+{
+  "name": "sigmasockets-benchmark",
+  "version": "1.0.0",
+  "description": "Performance benchmark suite for SigmaSockets",
+  "type": "module",
+  "scripts": {
+    "build": "npm run generate:flatbuffers && tsc && npm run compile:generated",
+    "generate:flatbuffers": "node ../../scripts/create-clean-flatbuffers.js",
+    "compile:generated": "tsc src/generated/**/*.ts --outDir dist/generated --target es2022 --module esnext --moduleResolution bundler",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "benchmark": "npm run build && node dist/benchmark-runner.js",
+    "benchmark:demo": "npm run build && node dist/simple-benchmark-demo.js",
+    "benchmark:client": "npm run build && node dist/benchmark-client.js",
+    "benchmark:server": "npm run build && node dist/sigmasockets-benchmark-server.js",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "websocket",
+    "benchmark",
+    "performance",
+    "sigmasockets",
+    "typescript"
+  ],
+  "author": "Manus AI",
+  "license": "MIT",
+  "dependencies": {
+    "sigmasockets-client": "*",
+    "sigmasockets-server": "*",
+    "flatbuffers": "^25.2.10",
+    "uwebsockets.js": "^19.0.0",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "sigmasockets": [
+    {
+      "totalMessages": 500,
+      "duration": 4993,
+      "messagesPerSecond": 100.14019627478469,
+      "averageLatency": 0,
+      "minLatency": 0,
+      "maxLatency": 0,
+      "errors": 0
+    },
+    {
+      "totalMessages": 500,
+      "duration": 4993,
+      "messagesPerSecond": 100.14019627478469,
+      "averageLatency": 0,
+      "minLatency": 0,
+      "maxLatency": 0,
+      "errors": 0
+    },
+    {
+      "totalMessages": 500,
+      "duration": 4992,
+      "messagesPerSecond": 100.16025641025641,
+      "averageLatency": 0,
+      "minLatency": 0,
+      "maxLatency": 0,
+      "errors": 0
+    }
+  ],
+  "simpleWS": [
+    {
+      "totalMessages": 500,
+      "duration": 4990,
+      "messagesPerSecond": 100.20040080160321,
+      "averageLatency": 0.368,
+      "minLatency": 0,
+      "maxLatency": 2,
+      "errors": 0
+    },
+    {
+      "totalMessages": 500,
+      "duration": 4995,
+      "messagesPerSecond": 100.1001001001001,
+      "averageLatency": 0.358,
+      "minLatency": 0,
+      "maxLatency": 3,
+      "errors": 0
+    },
+    {
+      "totalMessages": 500,
+      "duration": 5006,
+      "messagesPerSecond": 99.88014382740711,
+      "averageLatency": 0.348,
+      "minLatency": 0,
+      "maxLatency": 6,
+      "errors": 0
+    }
+  ],
+  "comparison": {
+    "sigmasocketsAvg": {
+      "totalMessages": 500,
+      "duration": 4992.666666666667,
+      "messagesPerSecond": 100.1468829866086,
+      "averageLatency": 0,
+      "minLatency": 0,
+      "maxLatency": 0,
+      "errors": 0
+    },
+    "simpleWSAvg": {
+      "totalMessages": 500,
+      "duration": 4997,
+      "messagesPerSecond": 100.06021490970346,
+      "averageLatency": 0.35799999999999993,
+      "minLatency": 0,
+      "maxLatency": 6,
+      "errors": 0
+    },
+    "performanceGain": 0.08661592120639808
+  }
+}

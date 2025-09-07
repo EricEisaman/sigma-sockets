@@ -1,0 +1,20 @@
+[
+  {
+    "category": "radical-automation",
+    "priority": "high",
+    "description": "Implement radical completion detection system",
+    "action": "Create fully automated completion phrase monitoring"
+  },
+  {
+    "category": "radical-improvement",
+    "priority": "high",
+    "description": "Enhance automatic improvement cycle",
+    "action": "Make improvement cycle more radical and comprehensive"
+  },
+  {
+    "category": "radical-optimization",
+    "priority": "medium",
+    "description": "Optimize completion phrase detection",
+    "action": "Improve detection accuracy and speed"
+  }
+]

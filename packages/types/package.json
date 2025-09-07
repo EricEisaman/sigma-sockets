@@ -1,0 +1,72 @@
+{
+  "name": "@sigmasockets/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript type definitions for SigmaSockets",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.js",
+      "types": "./dist/server.d.ts"
+    },
+    "./common": {
+      "import": "./dist/common.js",
+      "types": "./dist/common.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo 'No tests for types package'",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "websocket",
+    "realtime",
+    "multiplayer",
+    "flatbuffers",
+    "high-performance",
+    "typescript",
+    "nodejs",
+    "sigmasockets"
+  ],
+  "author": {
+    "name": "Eric Eisaman",
+    "email": "eric@eisaman.com",
+    "url": "https://www.npmjs.com/~sirfizx"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-ericeisaman:EricEisaman/sigma-sockets.git"
+  },
+  "homepage": "https://github.com/EricEisaman/sigma-sockets#readme",
+  "bugs": {
+    "url": "https://github.com/EricEisaman/sigma-sockets/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  }
+}

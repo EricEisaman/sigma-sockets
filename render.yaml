@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: sigmasockets-chat
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SIGMASOCKETS_PORT
+        value: 3000
+      - key: SIGMASOCKETS_WS_PORT
+        value: 3001
+      - key: SIGMASOCKETS_HOST
+        value: 0.0.0.0
+      - key: SIGMASOCKETS_MAX_CONNECTIONS
+        value: 1000
+      - key: SIGMASOCKETS_HEARTBEAT_INTERVAL
+        value: 30000
+      - key: SIGMASOCKETS_SESSION_TIMEOUT
+        value: 300000
+      - key: SIGMASOCKETS_CORS_ORIGIN
+        value: "*"
+      - key: SIGMASOCKETS_RATE_LIMIT
+        value: 1000
+    healthCheckPath: /health
+    autoDeploy: true
+    region: oregon

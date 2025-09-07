@@ -1,0 +1,6 @@
+{
+  "lastActivation": "2025-09-07T03:14:12.149Z",
+  "trigger": "command",
+  "action": "npm run test:completion",
+  "activations": 10
+}

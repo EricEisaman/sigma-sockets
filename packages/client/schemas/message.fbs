@@ -1,0 +1,56 @@
+namespace SigmaSockets;
+
+enum MessageType: byte {
+  Connect = 0,
+  Disconnect = 1,
+  Data = 2,
+  Heartbeat = 3,
+  Reconnect = 4,
+  Error = 5
+}
+
+table ConnectMessage {
+  session_id: string;
+  client_version: string;
+}
+
+table DisconnectMessage {
+  reason: string;
+}
+
+table DataMessage {
+  payload: [ubyte];
+  message_id: uint64;
+  timestamp: uint64;
+}
+
+table HeartbeatMessage {
+  timestamp: uint64;
+}
+
+table ReconnectMessage {
+  session_id: string;
+  last_message_id: uint64;
+}
+
+table ErrorMessage {
+  code: uint32;
+  message: string;
+}
+
+union MessageData {
+  ConnectMessage,
+  DisconnectMessage,
+  DataMessage,
+  HeartbeatMessage,
+  ReconnectMessage,
+  ErrorMessage
+}
+
+table Message {
+  type: MessageType;
+  data: MessageData;
+}
+
+root_type Message;
+

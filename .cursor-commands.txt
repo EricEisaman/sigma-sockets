@@ -1,0 +1,7 @@
+AI TRIGGER: Please work on this TODO: "Fix FlatBuffers builder.startObject is not a function error" (Priority: critical, Status: completed)
+
+Context: {
+  "project": "SigmaSockets",
+  "location": "/Users/eeisaman/Documents/SIGMA PRODUCTIONS/sigma-sockets",
+  "urgency": "URGENT"
+}
