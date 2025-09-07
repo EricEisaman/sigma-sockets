@@ -105,13 +105,13 @@ RUN sed 's/"sigmasockets-client": "\*",//g; s/"sigmasockets-server": "\*",//g' p
     npm install --production && \
     rm package.json.tmp
 
-# Copy the built local packages to node_modules
+# Copy the built local packages to node_modules with correct structure
 RUN mkdir -p node_modules/sigmasockets-server && \
-    cp -r packages/server/dist/* node_modules/sigmasockets-server/ && \
+    cp -r packages/server/dist node_modules/sigmasockets-server/ && \
     cp packages/server/package.json node_modules/sigmasockets-server/
 
 RUN mkdir -p node_modules/sigmasockets-client && \
-    cp -r packages/client/dist/* node_modules/sigmasockets-client/ && \
+    cp -r packages/client/dist node_modules/sigmasockets-client/ && \
     cp packages/client/package.json node_modules/sigmasockets-client/
 
 # Create non-root user for security
