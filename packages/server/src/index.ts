@@ -16,13 +16,15 @@ import { SecurityManager, createSecureWebSocketConfig, defaultSecurityConfig, ty
 // import { generateFlatBuffers, getDefaultSchema, type FlatBuffersConfig, type FlatBuffersResult } from './flatbuffers-generator';
 import type {
   SigmaSocketServerConfig,
+  RequiredSigmaSocketServerConfig,
   ClientSession,
   SigmaSocketServerEvents,
   ServerStats
 } from './types';
 
 export class SigmaSocketServer {
-  private config: Required<SigmaSocketServerConfig>;
+  private config: RequiredSigmaSocketServerConfig;
+  private requestHandler: ((req: any, res: any) => void) | undefined;
   private httpServer: Server;
   private wsServer: WebSocketServer;
   private clients: Map<string, ClientSession> = new Map();
@@ -35,14 +37,17 @@ export class SigmaSocketServer {
   private securityManager: SecurityManager;
 
   constructor(config: SigmaSocketServerConfig, securityConfig?: SecurityConfig) {
+    const { requestHandler, ...configWithoutHandler } = config;
+    
     this.config = {
-      port: config.port,
-      host: config.host ?? '0.0.0.0',
-      heartbeatInterval: config.heartbeatInterval ?? 30000,
-      sessionTimeout: config.sessionTimeout ?? 300000,
-      maxConnections: config.maxConnections ?? 1000,
-      bufferSize: config.bufferSize ?? 4096
+      port: configWithoutHandler.port,
+      host: configWithoutHandler.host ?? '0.0.0.0',
+      heartbeatInterval: configWithoutHandler.heartbeatInterval ?? 30000,
+      sessionTimeout: configWithoutHandler.sessionTimeout ?? 300000,
+      maxConnections: configWithoutHandler.maxConnections ?? 1000,
+      bufferSize: configWithoutHandler.bufferSize ?? 4096
     };
+    this.requestHandler = requestHandler;
 
     // Initialize security manager
     this.securityManager = new SecurityManager(securityConfig);
@@ -66,7 +71,7 @@ export class SigmaSocketServer {
     this.eventListeners.set('error', new Set());
 
     // Create HTTP server for WebSocket upgrade
-    this.httpServer = createServer();
+    this.httpServer = createServer(this.requestHandler);
     
     // Create WebSocket server with security configuration
     const wsConfig = createSecureWebSocketConfig(securityConfig || defaultSecurityConfig);

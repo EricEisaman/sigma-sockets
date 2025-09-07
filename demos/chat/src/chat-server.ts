@@ -50,7 +50,8 @@ class ChatServer {
         host: process.env['SIGMASOCKETS_HOST'] || '0.0.0.0',
         heartbeatInterval: parseInt(process.env['SIGMASOCKETS_HEARTBEAT_INTERVAL'] || '30000'),
         sessionTimeout: parseInt(process.env['SIGMASOCKETS_SESSION_TIMEOUT'] || '300000'),
-        maxConnections: parseInt(process.env['SIGMASOCKETS_MAX_CONNECTIONS'] || '1000')
+        maxConnections: parseInt(process.env['SIGMASOCKETS_MAX_CONNECTIONS'] || '1000'),
+        requestHandler: this.handleHttpRequest.bind(this)
       })
       console.log('SigmaSocketServer created successfully')
     } catch (error) {
@@ -58,14 +59,10 @@ class ChatServer {
       throw error
     }
 
-    this.setupHttpServer()
     this.setupEventHandlers()
   }
 
-  private setupHttpServer() {
-    const httpServer = this.wsServer.getHttpServer()
-    
-    httpServer.on('request', (req, res) => {
+  private handleHttpRequest(req: any, res: any) {
       const url = req.url || '/'
       
       // Set CORS headers
@@ -129,7 +126,6 @@ class ChatServer {
 
       res.writeHead(404, { 'Content-Type': 'text/plain' })
       res.end('Not found')
-    })
   }
 
   private setupEventHandlers() {

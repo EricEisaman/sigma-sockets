@@ -5,6 +5,16 @@ export interface SigmaSocketServerConfig {
   sessionTimeout?: number;
   maxConnections?: number;
   bufferSize?: number;
+  requestHandler?: (req: any, res: any) => void;
+}
+
+export interface RequiredSigmaSocketServerConfig {
+  port: number;
+  host: string;
+  heartbeatInterval: number;
+  sessionTimeout: number;
+  maxConnections: number;
+  bufferSize: number;
 }
 
 import { WebSocket } from 'ws';
