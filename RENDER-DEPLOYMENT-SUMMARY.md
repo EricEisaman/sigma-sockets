@@ -2,30 +2,34 @@
 
 ## 🚀 Deployment Setup Complete
 
-The SigmaSockets project is now fully configured for Render.com deployment, following the same pattern as your ScholarTrack project but optimized for the monorepo structure and chat demo entry point.
+The SigmaSockets project is now fully configured for Render.com deployment using the **industry-standard npm publishing approach**. All packages are published to npm and the demo uses standard npm dependencies, eliminating complex monorepo deployment issues.
 
 ## 📁 Files Created/Modified
 
 ### Core Deployment Files
-- **`Dockerfile`** - Multi-stage Docker build optimized for Vue.js + Node.js production
+- **`Dockerfile`** - Simplified Docker build using published npm packages
+- **`Dockerfile.complex`** - Archived complex monorepo Dockerfile (for reference)
 - **`render.yaml`** - Render.com service configuration with Vue.js support
 - **`.dockerignore`** - Optimized Docker build context
 - **`DEPLOY_RENDER.md`** - Comprehensive deployment guide with Vue.js features
-- **`scripts/deploy-render.sh`** - Automated deployment preparation script
+- **`scripts/publish.js`** - Automated npm publishing script
 
 ### Updated Files
 - **`demos/chat/src/chat-server.ts`** - Enhanced with HTTP server and health checks
-- **`package.json`** - Added Docker and deployment scripts
+- **`demos/chat/package.json`** - Updated to use published npm packages
+- **`packages/*/package.json`** - Updated with proper npm metadata and dependencies
+- **`package.json`** - Added npm publishing and deployment scripts
 
 ## 🏗️ Architecture Overview
 
-### Multi-Stage Docker Build
-1. **Builder Stage**: Builds all packages and Vue.js chat demo (client + server)
-2. **Production Stage**: Creates minimal production image with security best practices
+### Simplified Docker Build
+1. **Builder Stage**: Installs npm packages and builds Vue.js chat demo
+2. **Production Stage**: Creates minimal production image with published packages
 
-### Dual Server Architecture
-- **HTTP Server (Port 3000)**: Serves Vue.js frontend and health checks
-- **WebSocket Server (Port 3001)**: Handles real-time chat communication
+### Single-Port Architecture
+- **HTTP Server**: Serves Vue.js frontend and health checks
+- **WebSocket Server**: Handles real-time chat communication
+- **Unified Port**: Both servers use the same port (Render.com requirement)
 
 ### Security Integration
 - All security features from the recent review are included
@@ -79,9 +83,7 @@ git push origin main
 ### 3. Environment Variables Required
 ```bash
 NODE_ENV=production
-PORT=3000
-SIGMASOCKETS_PORT=3000
-SIGMASOCKETS_WS_PORT=3001
+PORT=10000
 SIGMASOCKETS_HOST=0.0.0.0
 SIGMASOCKETS_MAX_CONNECTIONS=1000
 SIGMASOCKETS_HEARTBEAT_INTERVAL=30000
@@ -92,56 +94,45 @@ SIGMASOCKETS_RATE_LIMIT=1000
 
 ## 🎯 Entry Point Configuration
 
-### Monorepo Structure
-- **Root**: Contains Dockerfile and render.yaml
+### Simplified Structure
+- **Root**: Contains simplified Dockerfile and render.yaml
 - **Entry Point**: `demos/chat/` folder
-- **Build Process**: Builds all packages first, then chat demo
+- **Build Process**: Installs npm packages and builds chat demo
 - **Runtime**: Starts chat server with HTTP and WebSocket servers
 
-### Package Dependencies
-- **Local Packages**: Uses built packages from `packages/*/dist/`
-- **No External Dependencies**: All SigmaSockets packages built locally
-- **Optimized Build**: Only production dependencies in final image
+### Published NPM Packages
+- **`sigmasockets-types@1.0.0`** - TypeScript type definitions
+- **`sigmasockets-client@1.0.0`** - WebSocket client library
+- **`sigmasockets-server@1.0.0`** - WebSocket server library
 
-### Critical Dependency Resolution Process
-The Docker build process includes several critical steps for handling local monorepo packages:
+### Simplified Dependency Management
+The new approach uses standard npm packages instead of complex local resolution:
 
-#### 1. Package.json Modification
+#### 1. Standard NPM Installation
 ```bash
-# Remove local package dependencies from main package.json
-sed 's/"sigmasockets-client": "\*",//g; s/"sigmasockets-server": "\*",//g' package.json.tmp > package.json
+# Simple npm install - no complex dependency resolution needed
+RUN npm ci --omit=dev
 ```
-- **Purpose**: Prevents npm from trying to fetch local packages from npm registry
-- **Critical**: Must be done before `npm install --production`
+- **Purpose**: Installs published packages from npm registry
+- **Benefits**: Standard npm workflow, better caching, industry standard
 
-#### 2. Local Package Installation Order
-```bash
-# Install dependencies in dependency order (types first, then server/client)
-RUN cd node_modules/@sigmasockets/types && npm install --production
-RUN cd node_modules/sigmasockets-server && npm install --production  
-RUN cd node_modules/sigmasockets-client && npm install --production
+#### 2. Published Package Dependencies
+```json
+{
+  "dependencies": {
+    "sigmasockets-client": "^1.0.0",
+    "sigmasockets-server": "^1.0.0"
+  }
+}
 ```
-- **Order Matters**: Types package must be installed before server/client packages
-- **Dependency Chain**: server → types, client → types
+- **Purpose**: Uses published packages instead of local monorepo packages
+- **Benefits**: Stable versions, no build complexity, standard installation
 
-#### 3. Package.json Path Modification
-```bash
-# Modify package.json files to use local file paths
-sed -i 's/"@sigmasockets\/types": "\*"/"@sigmasockets\/types": "file:..\/@sigmasockets\/types"/g' node_modules/sigmasockets-server/package.json
-sed -i 's/"@sigmasockets\/types": "\*"/"@sigmasockets\/types": "file:..\/@sigmasockets\/types"/g' node_modules/sigmasockets-client/package.json
-```
-- **Purpose**: Tells npm to use local file paths instead of npm registry
-- **Critical**: Prevents 404 errors for local package dependencies
-
-#### 4. Runtime Dependency Access
-```bash
-# Copy dependencies from local packages to main node_modules for runtime access
-RUN cp -r node_modules/sigmasockets-server/node_modules/* node_modules/ 2>/dev/null || true
-RUN cp -r node_modules/sigmasockets-client/node_modules/* node_modules/ 2>/dev/null || true
-RUN cp -r node_modules/@sigmasockets/types/node_modules/* node_modules/ 2>/dev/null || true
-```
-- **Purpose**: Ensures all transitive dependencies (like `flatbuffers`) are accessible at runtime
-- **Critical**: Without this, runtime errors occur for missing dependencies
+#### 3. Automatic Dependency Resolution
+- **NPM handles all transitive dependencies automatically**
+- **No manual copying or path modification needed**
+- **Standard Node.js module resolution**
+- **Better error handling and debugging**
 
 ## 🔒 Security Features
 
@@ -195,16 +186,16 @@ curl http://localhost:3000/health
 ## 🚨 Troubleshooting
 
 ### Common Issues
-- **Build Failures**: Check package builds and dependencies
-- **Port Conflicts**: Ensure HTTP and WebSocket ports are different
+- **Build Failures**: Check npm package installation and dependencies
+- **Port Conflicts**: Both HTTP and WebSocket servers use the same port (Render.com requirement)
 - **CORS Issues**: Verify origin configuration
 - **WebSocket Connection**: Check firewall and proxy settings
 
-### Port Configuration Issues
-- **Single Port Requirement**: Render.com only provides one port via `process.env.PORT`
-- **Port Conflict Error**: "Port 10000 is already in use" indicates WebSocket server using wrong port
-- **Solution**: Ensure both HTTP and WebSocket servers use the same port in production
-- **Configuration**: Set `wsPort` to use `process.env.PORT` instead of separate port
+### NPM Package Issues
+- **Package Not Found**: Ensure packages are published to npm registry
+- **Version Conflicts**: Use exact version numbers for stable deployments
+- **Dependency Resolution**: Standard npm handles all transitive dependencies automatically
+- **Build Failures**: Check that published packages include all required files
 
 ### Debug Commands
 ```bash
@@ -214,8 +205,13 @@ npm run build
 # Test chat demo locally
 npm run dev:chat
 
-# Verify package builds
-npm run build:packages
+# Verify npm packages are available
+npm view sigmasockets-client
+npm view sigmasockets-server
+npm view sigmasockets-types
+
+# Test npm package installation
+cd demos/chat && npm install
 ```
 
 ## 📈 Monitoring
@@ -246,21 +242,30 @@ npm run build:packages
 
 The SigmaSockets project is now fully configured for Render.com deployment with:
 
-✅ **Docker Configuration** - Multi-stage build optimized for production  
+✅ **NPM Packages Published** - All packages available on npm registry  
+✅ **Simplified Docker Build** - Standard npm workflow, no complex monorepo resolution  
+✅ **Industry Standard Approach** - Follows established patterns (React, Vue, Angular)  
 ✅ **Render.com Integration** - Complete service configuration  
 ✅ **Security Features** - All security improvements included  
 ✅ **Health Monitoring** - Comprehensive health checks  
 ✅ **Documentation** - Complete deployment guide  
 ✅ **Environment Configuration** - Flexible production settings  
-✅ **Chat Demo Entry Point** - Monorepo-optimized deployment  
+✅ **Chat Demo Entry Point** - NPM-optimized deployment  
 
 ## 🚀 Next Steps
 
-1. **Commit and Push** all changes to your repository
-2. **Create Render Service** using the provided configuration
-3. **Set Environment Variables** as documented
-4. **Deploy and Test** the chat demo
-5. **Monitor Performance** using health endpoints
-6. **Scale as Needed** based on usage patterns
+1. **✅ Packages Published** - All SigmaSockets packages are live on npm
+2. **✅ Code Committed** - All changes pushed to repository
+3. **Create Render Service** using the simplified Dockerfile
+4. **Set Environment Variables** as documented
+5. **Deploy and Test** the chat demo
+6. **Monitor Performance** using health endpoints
+7. **Scale as Needed** based on usage patterns
 
-The deployment is ready to go live with enterprise-grade security, performance, and monitoring capabilities!
+## 📦 NPM Package Links
+
+- **Types**: https://www.npmjs.com/package/sigmasockets-types
+- **Client**: https://www.npmjs.com/package/sigmasockets-client  
+- **Server**: https://www.npmjs.com/package/sigmasockets-server
+
+The deployment is ready to go live with enterprise-grade security, performance, and monitoring capabilities using the industry-standard npm approach!
