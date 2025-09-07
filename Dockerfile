@@ -36,8 +36,16 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-# Use ES modules approach consistent with project
-RUN cd demos/chat && npx tsc src/chat-server.ts --outDir dist --target es2022 --module esnext --moduleResolution node --noEmit false --skipLibCheck true --esModuleInterop true --allowSyntheticDefaultImports true
+# Debug: Check what's in the chat directory
+RUN ls -la /app/demos/chat/
+RUN ls -la /app/demos/chat/src/
+
+# Try TypeScript compilation with verbose output
+RUN cd demos/chat && npx tsc src/chat-server.ts --outDir dist --target es2022 --module esnext --moduleResolution node --noEmit false --skipLibCheck true --esModuleInterop true --allowSyntheticDefaultImports true --listEmittedFiles
+
+# Check if compilation worked
+RUN ls -la /app/demos/chat/dist/ || echo "dist directory not found"
+
 # Then build the client
 RUN cd demos/chat && npm run build:client
 # Verify server file was created
