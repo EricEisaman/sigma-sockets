@@ -119,6 +119,10 @@ RUN mkdir -p node_modules/sigmasockets-client && \
     cp -r packages/client/dist node_modules/sigmasockets-client/ && \
     cp packages/client/package.json node_modules/sigmasockets-client/
 
+# Modify package.json files to use local file paths instead of "*"
+RUN sed -i 's/"@sigmasockets\/types": "\*"/"@sigmasockets\/types": "file:..\/@sigmasockets\/types"/g' node_modules/sigmasockets-server/package.json
+RUN sed -i 's/"@sigmasockets\/types": "\*"/"@sigmasockets\/types": "file:..\/@sigmasockets\/types"/g' node_modules/sigmasockets-client/package.json
+
 # Install dependencies for local packages (types first, then server/client)
 RUN cd node_modules/@sigmasockets/types && npm install --production
 RUN cd node_modules/sigmasockets-server && npm install --production
