@@ -148,9 +148,29 @@ export class SigmaSocketClient {
 
       builder.finish(message);
       const flatbuffersData = builder.asUint8Array();
+      
+      // Validate the built FlatBuffer by parsing it back (like the example)
       if (this.config.debug) {
         console.log('🔧 Sending FlatBuffers message, size:', flatbuffersData.length);
+        
+        // Validate by parsing back (following the example pattern)
+        try {
+          const bb = new flatbuffers.ByteBuffer(flatbuffersData);
+          const validationMessage = Message.getRootAsMessage(bb);
+          const messageType = validationMessage.type();
+          const dataType = validationMessage.dataType();
+          
+          if (messageType === MessageType.Data && dataType === MessageData.DataMessage) {
+            console.log('✅ FlatBuffers validation successful - DataMessage confirmed');
+          } else {
+            console.warn('⚠️ FlatBuffers validation warning - unexpected message type:', messageType, dataType);
+          }
+        } catch (validationError) {
+          console.error('❌ FlatBuffers validation failed:', validationError);
+          throw new Error('Built FlatBuffer failed validation');
+        }
       }
+      
       this.ws.send(flatbuffersData);
 
       if (this.session) {
@@ -249,6 +269,19 @@ export class SigmaSocketClient {
       const buffer = new Uint8Array(event.data);
       const buf = new flatbuffers.ByteBuffer(buffer);
       const message = Message.getRootAsMessage(buf);
+      
+      // Validate the received message (following the example pattern)
+      if (this.config.debug) {
+        const messageType = message.type();
+        const dataType = message.dataType();
+        console.log('📥 Received FlatBuffers message - type:', messageType, 'dataType:', dataType);
+        
+        // Validate message type is within expected range
+        if (messageType < 0 || messageType > 6) {
+          console.error('❌ Invalid message type received:', messageType);
+          return;
+        }
+      }
 
       switch (message.type()) {
         case MessageType.Data:
@@ -284,15 +317,38 @@ export class SigmaSocketClient {
   }
 
   private handleDataMessage(message: Message): void {
-    const dataMsg = message.data(new DataMessage());
-    if (dataMsg) {
-      const payload = new Uint8Array(dataMsg.payloadLength());
-      for (let i = 0; i < dataMsg.payloadLength(); i++) {
-        payload[i] = dataMsg.payload(i) ?? 0;
+    // Validate message data type (following the example pattern)
+    if (message.dataType() !== MessageData.DataMessage) {
+      if (this.config.debug) {
+        console.error('❌ Expected DataMessage but got dataType:', message.dataType());
       }
-      
-      this.emit('message', payload, dataMsg.messageId(), dataMsg.timestamp());
+      return;
     }
+    
+    const dataMsg = message.data(new DataMessage());
+    if (!dataMsg) {
+      if (this.config.debug) {
+        console.error('❌ Failed to create DataMessage from message');
+      }
+      return;
+    }
+    
+    // Extract payload using the generated accessor (following the example pattern)
+    const payloadArray = dataMsg.payloadArray();
+    if (!payloadArray) {
+      if (this.config.debug) {
+        console.error('❌ No payload found in DataMessage');
+      }
+      return;
+    }
+    
+    const payload = new Uint8Array(payloadArray);
+    
+    if (this.config.debug) {
+      console.log('✅ DataMessage processed - payload size:', payload.length, 'messageId:', dataMsg.messageId());
+    }
+    
+    this.emit('message', payload, dataMsg.messageId(), dataMsg.timestamp());
   }
 
   private handleHeartbeatMessage(_message: Message): void {
