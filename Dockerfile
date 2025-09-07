@@ -35,6 +35,9 @@ COPY --from=builder /app/demos/chat/dist/chat-server.js.map ./dist/
 COPY --from=builder /app/demos/chat/dist/assets ./dist/assets/
 COPY --from=builder /app/demos/chat/dist/index.html ./dist/
 
+# Copy public assets (including banner image for social media)
+COPY --from=builder /app/demos/chat/public ./public/
+
 # Copy package.json for production dependencies
 COPY --from=builder /app/demos/chat/package*.json ./
 
