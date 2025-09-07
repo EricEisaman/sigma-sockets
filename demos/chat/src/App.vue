@@ -422,6 +422,21 @@ const connect = async () => {
     client.on('error', (error: Error) => {
       console.error('WebSocket error:', error)
       connectionStatus.value = ConnectionStatus.Error
+      
+      // Attempt to reconnect after a delay if we're in error state
+      setTimeout(() => {
+        if (connectionStatus.value === ConnectionStatus.Error) {
+          console.log('Attempting to reconnect after error...')
+          client.connect().catch((reconnectError) => {
+            console.error('Reconnection failed:', reconnectError)
+          })
+        }
+      }, 5000) // Wait 5 seconds before attempting reconnection
+    })
+
+    client.on('reconnecting', (info: any) => {
+      console.log('WebSocket reconnecting:', info)
+      connectionStatus.value = ConnectionStatus.Reconnecting
     })
 
     await client.connect()

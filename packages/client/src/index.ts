@@ -273,7 +273,7 @@ export class SigmaSocketClient {
   }
 
   public getVersion(): string {
-    return '1.0.12';
+    return '1.0.13';
   }
 
   private onWebSocketOpen(): void {
@@ -447,9 +447,16 @@ export class SigmaSocketClient {
   }
 
   private handleErrorMessage(_message: Message): void {
-    // Handle server error messages
+    // Handle server error messages - treat as connection failure
+    if (this.config.debug) {
+      console.log('🔧 Server sent error message - treating as connection failure');
+    }
+    
     const error = new Error('Server error received');
     this.emit('error', error);
+    
+    // Trigger reconnection on server error
+    this.handleConnectionFailure();
   }
 
   private scheduleReconnect(): void {
