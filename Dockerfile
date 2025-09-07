@@ -10,7 +10,7 @@ COPY demos/chat/tsconfig*.json ./
 COPY demos/chat/vite.config.ts ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY demos/chat/src ./src/
@@ -31,7 +31,7 @@ COPY --from=builder /app/dist ./dist/
 COPY --from=builder /app/package*.json ./
 
 # Install only production dependencies
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
