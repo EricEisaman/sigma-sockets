@@ -96,7 +96,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container fluid class="pa-4 pa-md-6 pa-lg-8 pt-10 pt-md-6">
+      <v-container fluid class="pa-4 pa-md-6 pa-lg-8 pt-20 pt-md-15">
         <v-row justify="center">
           <v-col cols="12" xl="10" lg="11" md="12">
             <v-row>
@@ -277,6 +277,7 @@ const messageInput = ref('')
 const connectionStatus = ref<ConnectionStatus>(ConnectionStatus.Disconnected)
 const messagesContainer = ref<HTMLElement>()
 const userCount = ref<number>(0)
+const username = ref(`User_${Math.random().toString(36).substr(2, 9)}`)
 
 // WebSocket client
 let client: SigmaSocketClient | null = null
@@ -337,7 +338,7 @@ const sendMessage = () => {
   if (colorParse.isColorCommand && colorParse.color && colorParse.message) {
     message = {
       type: 'color',
-      username: 'You',
+      username: username.value,
       timestamp: Date.now(),
       data: {
         color: colorParse.color,
@@ -347,7 +348,7 @@ const sendMessage = () => {
   } else {
     message = {
       type: 'chat',
-      username: 'You',
+      username: username.value,
       timestamp: Date.now(),
       data: {
         message: input
