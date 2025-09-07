@@ -365,6 +365,8 @@ const sendMessage = () => {
   console.log('Data bytes:', data)
   
   // Send the data - client.send() will wrap it in FlatBuffers
+  console.log('🔧 About to send data to client.send(), size:', data.length)
+  console.log('🔧 Data being passed to client.send():', data)
   const success = client.send(data)
   console.log('Send result:', success)
 
