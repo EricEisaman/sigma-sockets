@@ -254,6 +254,15 @@ export class SigmaSocketServer {
       // Find client for rate limiting
       const client = this.findClientByWebSocket(ws);
       const clientId = client?.id || 'unknown';
+      
+      // Critical debugging for binary data handling
+      console.log(`🔧 [SERVER] Received WebSocket message from ${clientId}`);
+      console.log(`🔧 [SERVER] Data type: ${data.constructor.name}`);
+      console.log(`🔧 [SERVER] Data length: ${data.length}`);
+      console.log(`🔧 [SERVER] First 20 bytes: [${Array.from(data.slice(0, 20)).join(', ')}]`);
+      console.log(`🔧 [SERVER] WebSocket binaryType: ${ws.binaryType}`);
+      console.log(`🔧 [SERVER] Is Buffer: ${Buffer.isBuffer(data)}`);
+      console.log(`🔧 [SERVER] Is ArrayBuffer: ${data instanceof ArrayBuffer}`);
 
       // Validate message size
       const sizeValidation = this.securityManager.validateMessageSize(data);

@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar color="primary" dark elevation="4" height="auto" class="py-3">
+    <v-app-bar app color="primary" dark elevation="4" height="auto" class="py-3">
       <v-container fluid class="py-0">
         <!-- Mobile Layout -->
         <v-row class="d-flex d-md-none" no-gutters>
@@ -96,7 +96,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container fluid class="pa-4 pa-md-6 pa-lg-8 pt-40 pt-md-30">
+      <v-container fluid class="pa-4 pa-md-6 pa-lg-8">
         <v-row justify="center">
           <v-col cols="12" xl="10" lg="11" md="12">
             <v-row>

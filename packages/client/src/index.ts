@@ -189,9 +189,28 @@ export class SigmaSocketClient {
           console.log(`🔧 [${transmissionId}] Original data size: ${data.length}`);
           console.log(`🔧 [${transmissionId}] FlatBuffers data size: ${flatbuffersData.length}`);
           console.log(`🔧 [${transmissionId}] WebSocket readyState: ${this.ws.readyState}`);
+          console.log(`🔧 [${transmissionId}] WebSocket binaryType: ${this.ws.binaryType}`);
+          
+          // Critical data type diagnostics
+          console.log(`🔧 [${transmissionId}] Data type checks:`);
+          console.log(`🔧 [${transmissionId}] - Is ArrayBuffer? ${flatbuffersData instanceof ArrayBuffer}`);
+          console.log(`🔧 [${transmissionId}] - Is TypedArray? ${ArrayBuffer.isView(flatbuffersData)}`);
+          console.log(`🔧 [${transmissionId}] - Constructor: ${flatbuffersData.constructor.name}`);
+          console.log(`🔧 [${transmissionId}] - Byte length: ${flatbuffersData.byteLength}`);
+          console.log(`🔧 [${transmissionId}] - First 4 bytes: [${Array.from(flatbuffersData.slice(0, 4)).join(', ')}]`);
         }
         
-        this.ws.send(flatbuffersData);
+        // Explicit ArrayBuffer conversion to prevent type coercion
+        const dataToSend = flatbuffersData instanceof ArrayBuffer ? 
+          flatbuffersData : 
+          flatbuffersData.buffer;
+          
+        if (this.config.debug) {
+          console.log(`🔧 [${transmissionId}] Final data to send - Is ArrayBuffer: ${dataToSend instanceof ArrayBuffer}`);
+          console.log(`🔧 [${transmissionId}] Final data byte length: ${dataToSend.byteLength}`);
+        }
+        
+        this.ws.send(dataToSend);
         
         if (this.config.debug) {
           console.log(`🔧 [${transmissionId}] WebSocket.send() completed successfully`);
@@ -240,7 +259,7 @@ export class SigmaSocketClient {
   }
 
   public getVersion(): string {
-    return '1.0.9';
+    return '1.0.10';
   }
 
   private onWebSocketOpen(): void {
