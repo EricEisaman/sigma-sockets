@@ -1,8 +1,57 @@
 <template>
   <v-app>
-    <v-app-bar color="primary" dark elevation="4">
-      <v-container>
-        <v-row align="center" no-gutters>
+    <v-app-bar color="primary" dark elevation="4" height="auto">
+      <v-container fluid>
+        <!-- Mobile Layout -->
+        <v-row class="d-flex d-md-none" no-gutters>
+          <v-col cols="12">
+            <v-row align="center" no-gutters class="mb-2">
+              <v-col cols="auto">
+                <div class="d-flex align-center">
+                  <v-avatar size="40" color="secondary" class="mr-3">
+                    <v-icon size="24" color="white">mdi-lightning-bolt</v-icon>
+                  </v-avatar>
+                  <div>
+                    <h1 class="text-h5 font-weight-bold text-white mb-0">
+                      SigmaSockets
+                    </h1>
+                    <p class="text-caption text-white opacity-80 mb-0">
+                      Real-time Chat Demo
+                    </p>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+            <v-row justify="center" no-gutters>
+              <v-col cols="auto" class="mr-2">
+                <v-chip
+                  v-if="connectionStatus === 'connected'"
+                  color="info"
+                  size="small"
+                  variant="elevated"
+                >
+                  <v-icon start size="small">mdi-account-group</v-icon>
+                  {{ userCount }} user{{ userCount !== 1 ? 's' : '' }}
+                </v-chip>
+              </v-col>
+              <v-col cols="auto">
+                <v-chip
+                  :color="connectionStatus === 'connected' ? 'success' : 'error'"
+                  size="small"
+                  variant="elevated"
+                >
+                  <v-icon start size="small">
+                    {{ connectionStatus === 'connected' ? 'mdi-wifi' : 'mdi-wifi-off' }}
+                  </v-icon>
+                  {{ formattedConnectionStatus }}
+                </v-chip>
+              </v-col>
+            </v-row>
+          </v-col>
+        </v-row>
+
+        <!-- Desktop Layout -->
+        <v-row class="d-none d-md-flex" align="center" no-gutters>
           <v-col cols="auto">
             <div class="d-flex align-center">
               <v-avatar size="48" color="secondary" class="mr-4">
@@ -19,28 +68,28 @@
             </div>
           </v-col>
           <v-spacer></v-spacer>
+          <v-col cols="auto" class="mr-2">
+            <v-chip
+              v-if="connectionStatus === 'connected'"
+              color="info"
+              size="large"
+              variant="elevated"
+            >
+              <v-icon start>mdi-account-group</v-icon>
+              {{ userCount }} user{{ userCount !== 1 ? 's' : '' }}
+            </v-chip>
+          </v-col>
           <v-col cols="auto">
-            <div class="d-flex align-center" style="gap: 12px;">
-              <v-chip
-                v-if="connectionStatus === 'connected'"
-                color="info"
-                size="large"
-                variant="elevated"
-              >
-                <v-icon start>mdi-account-group</v-icon>
-                {{ userCount }} user{{ userCount !== 1 ? 's' : '' }}
-              </v-chip>
-              <v-chip
-                :color="connectionStatus === 'connected' ? 'success' : 'error'"
-                size="large"
-                variant="elevated"
-              >
-                <v-icon start>
-                  {{ connectionStatus === 'connected' ? 'mdi-wifi' : 'mdi-wifi-off' }}
-                </v-icon>
-                {{ formattedConnectionStatus }}
-              </v-chip>
-            </div>
+            <v-chip
+              :color="connectionStatus === 'connected' ? 'success' : 'error'"
+              size="large"
+              variant="elevated"
+            >
+              <v-icon start>
+                {{ connectionStatus === 'connected' ? 'mdi-wifi' : 'mdi-wifi-off' }}
+              </v-icon>
+              {{ formattedConnectionStatus }}
+            </v-chip>
           </v-col>
         </v-row>
       </v-container>
