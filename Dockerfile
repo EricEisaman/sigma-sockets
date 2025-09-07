@@ -36,8 +36,10 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-# Use the npm build script which should work better
-RUN cd demos/chat && npm run build
+# First try to build the server directly with TypeScript
+RUN cd demos/chat && npx tsc src/chat-server.ts --outDir dist --target es2022 --module esnext --moduleResolution node --noEmit false --skipLibCheck true
+# Then build the client
+RUN cd demos/chat && npm run build:client
 # Verify server file was created
 RUN ls -la /app/demos/chat/dist/chat-server.js || (echo "chat-server.js not found" && ls -la /app/demos/chat/dist/ && exit 1)
 
