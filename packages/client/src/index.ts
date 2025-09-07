@@ -171,7 +171,15 @@ export class SigmaSocketClient {
         }
       }
       
-      this.ws.send(flatbuffersData);
+      // Only send FlatBuffers data, never raw JSON
+      if (this.ws && flatbuffersData) {
+        this.ws.send(flatbuffersData);
+      } else {
+        if (this.config.debug) {
+          console.error('❌ Cannot send: WebSocket not available or no FlatBuffers data');
+        }
+        return false;
+      }
 
       if (this.session) {
         this.session.lastMessageId = messageId;

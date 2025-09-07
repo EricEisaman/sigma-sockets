@@ -355,13 +355,15 @@ const sendMessage = () => {
     } as ChatMessage
   }
 
-  // Send to server
+  // Create FlatBuffer first, then send
   const jsonString = JSON.stringify(message)
   const encoder = new TextEncoder()
   const data = encoder.encode(jsonString)
   console.log('Sending message:', message)
   console.log('JSON string:', jsonString)
   console.log('Data bytes:', data)
+  
+  // Send the data - client.send() will wrap it in FlatBuffers
   const success = client.send(data)
   console.log('Send result:', success)
 
