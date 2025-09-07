@@ -62,7 +62,7 @@
     "url": "https://github.com/EricEisaman/sigma-sockets/issues"
   },
   "dependencies": {
-    "@sigmasockets/types": "^1.0.0"
+    "sigmasockets-types": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

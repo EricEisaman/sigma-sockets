@@ -1,5 +1,5 @@
 {
-  "name": "@sigmasockets/types",
+  "name": "sigmasockets-types",
   "version": "1.0.0",
   "description": "Shared TypeScript type definitions for SigmaSockets",
   "type": "module",
