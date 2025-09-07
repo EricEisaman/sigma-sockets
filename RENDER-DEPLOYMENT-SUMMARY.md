@@ -103,6 +103,46 @@ SIGMASOCKETS_RATE_LIMIT=1000
 - **No External Dependencies**: All SigmaSockets packages built locally
 - **Optimized Build**: Only production dependencies in final image
 
+### Critical Dependency Resolution Process
+The Docker build process includes several critical steps for handling local monorepo packages:
+
+#### 1. Package.json Modification
+```bash
+# Remove local package dependencies from main package.json
+sed 's/"sigmasockets-client": "\*",//g; s/"sigmasockets-server": "\*",//g' package.json.tmp > package.json
+```
+- **Purpose**: Prevents npm from trying to fetch local packages from npm registry
+- **Critical**: Must be done before `npm install --production`
+
+#### 2. Local Package Installation Order
+```bash
+# Install dependencies in dependency order (types first, then server/client)
+RUN cd node_modules/@sigmasockets/types && npm install --production
+RUN cd node_modules/sigmasockets-server && npm install --production  
+RUN cd node_modules/sigmasockets-client && npm install --production
+```
+- **Order Matters**: Types package must be installed before server/client packages
+- **Dependency Chain**: server → types, client → types
+
+#### 3. Package.json Path Modification
+```bash
+# Modify package.json files to use local file paths
+sed -i 's/"@sigmasockets\/types": "\*"/"@sigmasockets\/types": "file:..\/@sigmasockets\/types"/g' node_modules/sigmasockets-server/package.json
+sed -i 's/"@sigmasockets\/types": "\*"/"@sigmasockets\/types": "file:..\/@sigmasockets\/types"/g' node_modules/sigmasockets-client/package.json
+```
+- **Purpose**: Tells npm to use local file paths instead of npm registry
+- **Critical**: Prevents 404 errors for local package dependencies
+
+#### 4. Runtime Dependency Access
+```bash
+# Copy dependencies from local packages to main node_modules for runtime access
+RUN cp -r node_modules/sigmasockets-server/node_modules/* node_modules/ 2>/dev/null || true
+RUN cp -r node_modules/sigmasockets-client/node_modules/* node_modules/ 2>/dev/null || true
+RUN cp -r node_modules/@sigmasockets/types/node_modules/* node_modules/ 2>/dev/null || true
+```
+- **Purpose**: Ensures all transitive dependencies (like `flatbuffers`) are accessible at runtime
+- **Critical**: Without this, runtime errors occur for missing dependencies
+
 ## 🔒 Security Features
 
 ### Production Security
@@ -159,6 +199,12 @@ curl http://localhost:3000/health
 - **Port Conflicts**: Ensure HTTP and WebSocket ports are different
 - **CORS Issues**: Verify origin configuration
 - **WebSocket Connection**: Check firewall and proxy settings
+
+### Port Configuration Issues
+- **Single Port Requirement**: Render.com only provides one port via `process.env.PORT`
+- **Port Conflict Error**: "Port 10000 is already in use" indicates WebSocket server using wrong port
+- **Solution**: Ensure both HTTP and WebSocket servers use the same port in production
+- **Configuration**: Set `wsPort` to use `process.env.PORT` instead of separate port
 
 ### Debug Commands
 ```bash
