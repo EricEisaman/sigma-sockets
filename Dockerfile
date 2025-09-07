@@ -106,6 +106,11 @@ RUN sed 's/"sigmasockets-client": "\*",//g; s/"sigmasockets-server": "\*",//g' p
     rm package.json.tmp
 
 # Copy the built local packages to node_modules with correct structure
+# Copy types package first since other packages depend on it
+RUN mkdir -p node_modules/@sigmasockets/types && \
+    cp -r packages/types/dist node_modules/@sigmasockets/types/ && \
+    cp packages/types/package.json node_modules/@sigmasockets/types/
+
 RUN mkdir -p node_modules/sigmasockets-server && \
     cp -r packages/server/dist node_modules/sigmasockets-server/ && \
     cp packages/server/package.json node_modules/sigmasockets-server/
@@ -114,14 +119,10 @@ RUN mkdir -p node_modules/sigmasockets-client && \
     cp -r packages/client/dist node_modules/sigmasockets-client/ && \
     cp packages/client/package.json node_modules/sigmasockets-client/
 
-RUN mkdir -p node_modules/@sigmasockets/types && \
-    cp -r packages/types/dist node_modules/@sigmasockets/types/ && \
-    cp packages/types/package.json node_modules/@sigmasockets/types/
-
-# Install dependencies for local packages
+# Install dependencies for local packages (types first, then server/client)
+RUN cd node_modules/@sigmasockets/types && npm install --production
 RUN cd node_modules/sigmasockets-server && npm install --production
 RUN cd node_modules/sigmasockets-client && npm install --production
-RUN cd node_modules/@sigmasockets/types && npm install --production
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
