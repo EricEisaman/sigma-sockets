@@ -36,8 +36,16 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-# Use tsconfig.build.json approach with correct path context
-RUN cd /app/demos/chat && npx tsc -p /app/demos/chat/tsconfig.build.json
+# Debug: Check what's in the chat directory before build
+RUN ls -la /app/demos/chat/
+RUN ls -la /app/demos/chat/src/
+
+# Use tsconfig.build.json approach with correct path context and verbose output
+RUN cd /app/demos/chat && npx tsc -p /app/demos/chat/tsconfig.build.json --listEmittedFiles
+
+# Check what was actually created
+RUN ls -la /app/demos/chat/dist/ || echo "dist directory not found"
+RUN find /app/demos/chat -name "chat-server.js" -type f || echo "chat-server.js not found anywhere"
 
 # Then build the client
 RUN cd demos/chat && npm run build:client
