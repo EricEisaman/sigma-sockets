@@ -47,12 +47,15 @@ RUN chown -R sigmasockets:nodejs /app
 # Switch to non-root user
 USER sigmasockets
 
-# Expose port
+# Expose common ports (Render.com will use PORT environment variable at runtime)
 EXPOSE 10000
+EXPOSE 3000
+EXPOSE 3001
+EXPOSE 3002
 
-# Health check
+# Health check using dynamic port
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:10000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "const port = process.env.PORT || 10000; require('http').get(\`http://localhost:\${port}/health\`, (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
 CMD ["node", "dist/chat-server.js"]
