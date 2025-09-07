@@ -1,6 +1,6 @@
 {
   "name": "sigmasockets-client",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "High-performance WebSocket client with FlatBuffers serialization and automatic reconnection",
   "type": "module",
   "main": "./dist/index.js",

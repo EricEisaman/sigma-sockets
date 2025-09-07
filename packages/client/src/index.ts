@@ -273,7 +273,7 @@ export class SigmaSocketClient {
   }
 
   public getVersion(): string {
-    return '1.0.13';
+    return '1.0.14';
   }
 
   private onWebSocketOpen(): void {
@@ -460,7 +460,14 @@ export class SigmaSocketClient {
   }
 
   private scheduleReconnect(): void {
+    if (this.config.debug) {
+      console.log(`🔧 Scheduling reconnect - attempt ${this.reconnectAttempts + 1}/${this.config.maxReconnectAttempts}`);
+    }
+
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
+      if (this.config.debug) {
+        console.log('🔧 Max reconnection attempts reached, setting status to Error');
+      }
       this.setStatus(ConnectionStatus.Error);
       this.emit('error', new Error('Max reconnection attempts reached'));
       return;
@@ -471,6 +478,10 @@ export class SigmaSocketClient {
       30000
     );
 
+    if (this.config.debug) {
+      console.log(`🔧 Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1})`);
+    }
+
     this.emit('reconnecting', {
       attempt: this.reconnectAttempts + 1,
       maxAttempts: this.config.maxReconnectAttempts,
@@ -479,7 +490,13 @@ export class SigmaSocketClient {
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectAttempts++;
-      this.connect().catch(() => {
+      if (this.config.debug) {
+        console.log(`🔧 Attempting reconnection ${this.reconnectAttempts}/${this.config.maxReconnectAttempts}`);
+      }
+      this.connect().catch((error) => {
+        if (this.config.debug) {
+          console.log('🔧 Reconnection attempt failed:', error);
+        }
         // Connection failed, will be handled by onWebSocketError
       });
     }, delay);
@@ -588,6 +605,9 @@ export class SigmaSocketClient {
     
     // Clear timers
     this.clearTimers();
+    
+    // Reset reconnection attempts for server errors (they should be retried)
+    this.reconnectAttempts = 0;
     
     // Attempt to reconnect
     this.setStatus(ConnectionStatus.Reconnecting);
