@@ -1,4 +1,4 @@
-import { SigmaSocketServer } from 'sigmasockets-server'
+import { SigmaSocketServer, type ClientSession } from 'sigmasockets-server'
 import { createServer } from 'http'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -10,9 +10,23 @@ import { DataMessage } from './generated/sigma-sockets/data-message.js'
 interface ChatMessage {
   type: 'chat'
   username: string
-  message: string
   timestamp: number
+  data: {
+    message: string
+  }
 }
+
+interface ColorMessage {
+  type: 'color'
+  username: string
+  timestamp: number
+  data: {
+    color: string
+    message: string
+  }
+}
+
+type StructuredMessage = ChatMessage | ColorMessage
 
 interface UserCountMessage {
   type: 'userCount'
@@ -96,7 +110,13 @@ class ChatServer {
           const asset = readFileSync(assetPath)
           const ext = url.split('.').pop()
           const contentType = ext === 'js' ? 'application/javascript' : 
-                             ext === 'css' ? 'text/css' : 'application/octet-stream'
+                             ext === 'css' ? 'text/css' :
+                             ext === 'woff2' ? 'font/woff2' :
+                             ext === 'woff' ? 'font/woff' :
+                             ext === 'ttf' ? 'font/ttf' :
+                             ext === 'eot' ? 'application/vnd.ms-fontobject' :
+                             ext === 'svg' ? 'image/svg+xml' :
+                             'application/octet-stream'
           res.writeHead(200, { 'Content-Type': contentType })
           res.end(asset)
         } catch (error) {
@@ -112,20 +132,20 @@ class ChatServer {
   }
 
   private setupEventHandlers() {
-    this.wsServer.on('connection', (clientId: string) => {
-      console.log(`Client connected: ${clientId}`)
-      this.connectedUsers.add(clientId)
+    this.wsServer.on('connection', (session: ClientSession) => {
+      console.log(`Client connected: ${session.id}`)
+      this.connectedUsers.add(session.id)
       this.broadcastUserCount()
     })
 
-    this.wsServer.on('disconnection', (clientId: string) => {
-      console.log(`Client disconnected: ${clientId}`)
-      this.connectedUsers.delete(clientId)
+    this.wsServer.on('disconnection', (session: ClientSession) => {
+      console.log(`Client disconnected: ${session.id}`)
+      this.connectedUsers.delete(session.id)
       this.broadcastUserCount()
     })
 
-    this.wsServer.on('message', (payload: Uint8Array, _messageId: number, _timestamp: number, client: any) => {
-      this.handleMessage(client.id, payload)
+    this.wsServer.on('message', (data: Uint8Array, _messageId: bigint, _timestamp: bigint, session: ClientSession) => {
+      this.handleMessage(session.id, data)
     })
 
     this.wsServer.on('error', (error: Error) => {
@@ -156,23 +176,22 @@ class ChatServer {
             console.log(`Payload JSON: ${jsonData}`)
             const chatData = JSON.parse(jsonData)
             
-            if (chatData.username && chatData.message) {
-              console.log('Creating chat message...')
-              const chatMessage: ChatMessage = {
-                type: 'chat',
-                username: chatData.username,
-                message: chatData.message,
-                timestamp: Date.now()
-              }
+            if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
+              console.log('Creating structured message...')
+              const structuredMessage: StructuredMessage = chatData
 
               // Broadcast the message to all connected clients
-              const messageData = new TextEncoder().encode(JSON.stringify(chatMessage))
+              const messageData = new TextEncoder().encode(JSON.stringify(structuredMessage))
               console.log('Broadcasting message to all clients...')
               this.wsServer.broadcast(messageData)
               
-              console.log(`✅ Message from ${chatData.username}: ${chatData.message}`)
+              if (chatData.type === 'color') {
+                console.log(`✅ Color message from ${chatData.username}: ${chatData.data.message} (color: ${chatData.data.color})`)
+              } else {
+                console.log(`✅ Message from ${chatData.username}: ${chatData.data.message}`)
+              }
             } else {
-              console.log('Missing username or message in chat data:', chatData)
+              console.log('Missing username or invalid message type in chat data:', chatData)
             }
           } else {
             console.log('No payload array found')
@@ -194,20 +213,19 @@ class ChatServer {
             const chatData = JSON.parse(jsonMatch[0])
             console.log('Extracted chat data:', chatData)
             
-            if (chatData.username && chatData.message) {
-              const chatMessage: ChatMessage = {
-                type: 'chat',
-                username: chatData.username,
-                message: chatData.message,
-                timestamp: Date.now()
-              }
+            if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
+              const structuredMessage: StructuredMessage = chatData
 
               // Broadcast the message to all connected clients
-              const messageData = new TextEncoder().encode(JSON.stringify(chatMessage))
+              const messageData = new TextEncoder().encode(JSON.stringify(structuredMessage))
               console.log('Broadcasting message to all clients...')
               this.wsServer.broadcast(messageData)
               
-              console.log(`✅ Message from ${chatData.username}: ${chatData.message}`)
+              if (chatData.type === 'color') {
+                console.log(`✅ Color message from ${chatData.username}: ${chatData.data.message} (color: ${chatData.data.color})`)
+              } else {
+                console.log(`✅ Message from ${chatData.username}: ${chatData.data.message}`)
+              }
             }
           } catch (error) {
             console.error('Error parsing chat data from Connect message:', error)

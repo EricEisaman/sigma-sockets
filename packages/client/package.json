@@ -22,7 +22,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run generate:flatbuffers && vite build && tsc --emitDeclarationOnly",
+    "build": "npm run generate:flatbuffers && vite build && tsc --declaration --emitDeclarationOnly --outDir dist",
     "generate:flatbuffers": "node ../../scripts/create-clean-flatbuffers.js",
     "dev": "vite build --watch",
     "test": "vitest",
@@ -64,9 +64,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
     "flatbuffers": "25.2.10",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",

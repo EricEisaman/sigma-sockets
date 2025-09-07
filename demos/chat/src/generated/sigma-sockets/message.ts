@@ -4,7 +4,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { MessageData } from './message-data.js';
+// @ts-ignore - Generated code may have unused imports
+import { MessageData, unionToMessageData, unionListToMessageData } from './message-data.js';
 import { MessageType } from './message-type.js';
 
 

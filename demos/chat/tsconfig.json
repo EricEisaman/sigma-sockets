@@ -11,7 +11,60 @@
     "module": "esnext",
     "composite": false,
     "allowImportingTsExtensions": false,
-    "types": ["node"]
+    "types": ["node", "vite/client"],
+    
+    // === STRICT TYPE CHECKING ===
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    
+    // === MODULE RESOLUTION ===
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    "paths": {
+      "sigmasockets-client": ["../../packages/client/dist/index.d.ts"],
+      "sigmasockets-server": ["../../packages/server/dist/index.d.ts"],
+      "@sigmasockets/*": ["../../packages/*/dist"]
+    },
+    
+    // === EMIT ===
+    "noEmitOnError": true,
+    "preserveConstEnums": true,
+    "declarationMap": true,
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    
+    // === INTEROP CONSTRAINTS ===
+    "isolatedModules": true,
+    "allowJs": false,
+    "checkJs": false,
+    
+    // === VUETIFY STRICT MODE ===
+    "skipLibCheck": true,
+    "noImplicitUseStrict": false,
+    "alwaysStrict": true,
+    "useDefineForClassFields": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    
+    // === ADDITIONAL STRICTNESS ===
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false
   },
   "include": [
     "src/**/*"

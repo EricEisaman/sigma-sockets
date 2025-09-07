@@ -4,7 +4,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { MessageData } from './message-data.js';
+import { MessageData, unionToMessageData, unionListToMessageData } from './message-data.js';
 import { MessageType } from './message-type.js';
 
 

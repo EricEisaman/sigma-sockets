@@ -3,6 +3,8 @@ import * as flatbuffers from 'flatbuffers'
 import { Message } from './generated/sigma-sockets/message.js'
 import { MessageType } from './generated/sigma-sockets/message-type.js'
 import { DataMessage } from './generated/sigma-sockets/data-message.js'
+import { parseColorCommand, getVuetifyColorClass } from './color-parser.js'
+import type { MessageType as ChatMessageType, ColorMessage, ChatMessage } from './types.js'
 
 class ChatDemo {
   private client!: SigmaSocketClient
@@ -21,11 +23,14 @@ class ChatDemo {
   }
 
   private initializeElements() {
-    this.messageInput = document.getElementById('messageInput') as HTMLInputElement
-    this.sendButton = document.getElementById('sendButton') as HTMLButtonElement
-    this.statusDiv = document.getElementById('status') as HTMLDivElement
-    this.messagesDiv = document.getElementById('messages') as HTMLDivElement
-    this.userCountDiv = document.getElementById('userCount') as HTMLDivElement
+    // Wait for Vuetify to initialize
+    setTimeout(() => {
+      this.messageInput = document.getElementById('messageInput') as HTMLInputElement
+      this.sendButton = document.getElementById('sendButton') as HTMLButtonElement
+      this.statusDiv = document.getElementById('status') as HTMLDivElement
+      this.messagesDiv = document.getElementById('messagesContainer') as HTMLDivElement
+      this.userCountDiv = document.getElementById('userCount') as HTMLDivElement
+    }, 100)
   }
 
   private setupClient() {
@@ -36,7 +41,7 @@ class ChatDemo {
       heartbeatInterval: 30000
     })
 
-    this.client.on('connection', (status: typeof ConnectionStatus) => {
+    this.client.on('connection', (status: ConnectionStatus) => {
       this.updateStatus(status)
     })
 
@@ -62,55 +67,89 @@ class ChatDemo {
     })
   }
 
-  private updateStatus(status: typeof ConnectionStatus) {
-    this.statusDiv.className = `status ${status}`
+  private updateStatus(status: ConnectionStatus) {
+    if (!this.statusDiv || !this.messageInput || !this.sendButton) return
+    
+    let type = 'error'
+    let text = 'Disconnected'
     
     switch (status) {
       case ConnectionStatus.Connected:
-        this.statusDiv.textContent = 'Connected'
+        type = 'success'
+        text = 'Connected'
         this.messageInput.disabled = false
         this.sendButton.disabled = false
         this.addSystemMessage('Connected to chat server!')
         break
       case ConnectionStatus.Connecting:
-        this.statusDiv.textContent = 'Connecting...'
+        type = 'warning'
+        text = 'Connecting...'
         this.messageInput.disabled = true
         this.sendButton.disabled = true
         break
       case ConnectionStatus.Reconnecting:
-        this.statusDiv.textContent = 'Reconnecting...'
+        type = 'warning'
+        text = 'Reconnecting...'
         this.messageInput.disabled = true
         this.sendButton.disabled = true
         break
       case ConnectionStatus.Disconnected:
-        this.statusDiv.textContent = 'Disconnected'
+        type = 'error'
+        text = 'Disconnected'
         this.messageInput.disabled = true
         this.sendButton.disabled = true
         break
       case ConnectionStatus.Error:
-        this.statusDiv.textContent = 'Connection Error'
+        type = 'error'
+        text = 'Connection Error'
         this.messageInput.disabled = true
         this.sendButton.disabled = true
         break
     }
+    
+    // Update Vuetify alert
+    this.statusDiv.setAttribute('type', type)
+    this.statusDiv.setAttribute('text', text)
   }
 
   private sendMessage() {
     const message = this.messageInput.value.trim()
     if (!message) return
 
-    const chatMessage = {
-      username: this.username,
-      message: message,
-      timestamp: Date.now()
+    // Parse for color command
+    const colorParseResult = parseColorCommand(message)
+    
+    let structuredMessage: ChatMessageType
+    
+    if (colorParseResult.isColorCommand && colorParseResult.color && colorParseResult.message) {
+      // Create color message
+      structuredMessage = {
+        type: 'color',
+        username: this.username,
+        timestamp: Date.now(),
+        data: {
+          color: colorParseResult.color,
+          message: colorParseResult.message
+        }
+      }
+    } else {
+      // Create regular chat message
+      structuredMessage = {
+        type: 'chat',
+        username: this.username,
+        timestamp: Date.now(),
+        data: {
+          message: message
+        }
+      }
     }
 
     // Show the message immediately in the UI
-    this.addChatMessage(chatMessage.username, chatMessage.message, true)
+    this.addStructuredMessage(structuredMessage, true)
 
     // Create FlatBuffers message
     const builder = new flatbuffers.Builder(1024)
-    const payload = builder.createString(JSON.stringify(chatMessage))
+    const payload = builder.createString(JSON.stringify(structuredMessage))
     
     DataMessage.startDataMessage(builder)
     DataMessage.addPayload(builder, payload)
@@ -136,10 +175,10 @@ class ChatDemo {
       console.log('Received message:', messageText)
       const message = JSON.parse(messageText)
       
-      if (message.type === 'chat') {
+      if (message.type === 'chat' || message.type === 'color') {
         // Only show messages from other users (not our own, since we already showed them)
         if (message.username !== this.username) {
-          this.addChatMessage(message.username, message.message, false)
+          this.addStructuredMessage(message, false)
         }
       } else if (message.type === 'userCount') {
         this.updateUserCount(message.count)
@@ -150,18 +189,61 @@ class ChatDemo {
     }
   }
 
-  private addChatMessage(username: string, message: string, isOwn: boolean) {
+  private addStructuredMessage(message: ChatMessageType, isOwn: boolean) {
     const messageDiv = document.createElement('div')
-    messageDiv.className = `message ${isOwn ? 'own' : ''}`
+    messageDiv.className = 'mb-2'
     
-    const time = new Date().toLocaleTimeString()
-    messageDiv.innerHTML = `
-      <strong>${username}</strong> <span style="color: #666; font-size: 0.8em;">${time}</span><br>
-      ${message}
+    const time = new Date(message.timestamp).toLocaleTimeString()
+    
+    // Create Vuetify alert component
+    const alertDiv = document.createElement('div')
+    alertDiv.className = 'v-alert v-alert--variant-tonal'
+    
+    // Determine color and styling based on message type
+    let colorClass = 'blue'
+    let messageText = ''
+    
+    if (message.type === 'color') {
+      const colorMessage = this.isColorMessage(message)
+      if (colorMessage) {
+        const vuetifyColor = getVuetifyColorClass(colorMessage.data.color)
+        colorClass = vuetifyColor
+        messageText = colorMessage.data.message
+      }
+    } else {
+      const chatMessage = this.isChatMessage(message)
+      if (chatMessage) {
+        messageText = chatMessage.data.message
+        colorClass = isOwn ? 'primary' : 'blue'
+      }
+    }
+    
+    alertDiv.className += ` v-alert--color-${colorClass}`
+    
+    // Create the message content
+    const contentDiv = document.createElement('div')
+    contentDiv.innerHTML = `
+      <div class="d-flex align-center mb-1">
+        <strong class="text-subtitle-2">${message.username}</strong>
+        <v-spacer></v-spacer>
+        <span class="text-caption text-medium-emphasis">${time}</span>
+      </div>
+      <div class="text-body-2">${messageText}</div>
     `
+    
+    alertDiv.appendChild(contentDiv)
+    messageDiv.appendChild(alertDiv)
     
     this.messagesDiv.appendChild(messageDiv)
     this.messagesDiv.scrollTop = this.messagesDiv.scrollHeight
+  }
+  
+  private isColorMessage(message: ChatMessageType): ColorMessage | null {
+    return message.type === 'color' ? message : null
+  }
+  
+  private isChatMessage(message: ChatMessageType): ChatMessage | null {
+    return message.type === 'chat' ? message : null
   }
 
   private addSystemMessage(message: string) {

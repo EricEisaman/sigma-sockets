@@ -4,6 +4,8 @@ services:
     env: docker
     plan: starter
     dockerfilePath: ./Dockerfile
+    buildCommand: echo "Using Dockerfile for build"
+    startCommand: node dist/chat-server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -28,3 +30,6 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     region: oregon
+    scaling:
+      minInstances: 1
+      maxInstances: 3

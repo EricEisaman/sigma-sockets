@@ -8,9 +8,17 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "composite": true,
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "emitDeclarationOnly": true,
+    "target": "ES2020",
+    "baseUrl": ".",
+    "paths": {
+      "@sigmasockets/*": ["../*/src"]
+    },
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*"

@@ -13,9 +13,10 @@ This guide will walk you through deploying the SigmaSockets Chat Demo on Render.
 Ensure your repository contains:
 - `Dockerfile` (already included in the project)
 - `render.yaml` (already included in the project)
+- `.dockerignore` (already included in the project)
 - All source code files
 - Built packages in `packages/*/dist/`
-- Built chat demo in `demos/chat/dist/`
+- Built chat demo in `demos/chat/dist/` (Vue.js client + Node.js server)
 
 ## Step 2: Create a New Web Service on Render
 
@@ -34,8 +35,8 @@ Ensure your repository contains:
 - **Root Directory**: Leave empty (root of repository)
 
 ### Build & Deploy Settings
-- **Build Command**: Leave empty (Docker handles this)
-- **Start Command**: Leave empty (Docker handles this)
+- **Build Command**: `echo "Using Dockerfile for build"` (optional)
+- **Start Command**: `node dist/chat-server.js` (optional, Dockerfile handles this)
 
 ## Step 4: Environment Variables
 
@@ -104,10 +105,14 @@ https://your-app-name.onrender.com
 
 The deployed application includes:
 
+### Multi-Stage Docker Build
+1. **Builder Stage**: Builds all packages and Vue.js chat demo
+2. **Production Stage**: Creates minimal production image with security best practices
+
 ### HTTP Server (Port 3000)
-- Serves the chat demo frontend
+- Serves the Vue.js chat demo frontend
 - Provides health check endpoint
-- Handles static asset serving
+- Handles static asset serving (Vue.js built assets)
 - Includes CORS headers
 
 ### WebSocket Server (Port 3001)
@@ -248,6 +253,26 @@ services:
     region: oregon
 ```
 
+## Quick Deployment Script
+
+Use the provided deployment script for easy preparation:
+
+```bash
+# Prepare for deployment (builds everything)
+npm run deploy:render
+
+# Test deployment locally (optional)
+npm run deploy:render:test
+```
+
+This script will:
+- Clean previous builds
+- Install dependencies
+- Build all packages
+- Build the Vue.js chat demo
+- Verify build outputs
+- Show build sizes
+
 ## Local Testing
 
 To test the Docker setup locally:
@@ -262,5 +287,16 @@ docker run -p 3000:3000 -p 3001:3001 sigmasockets-chat
 # Test the application
 curl http://localhost:3000/health
 ```
+
+## Vue.js Chat Demo Features
+
+The deployed chat demo includes:
+- **Vue.js 3** with Composition API
+- **Vuetify 3** components and styling
+- **TypeScript** with strict type checking
+- **Color commands** (`/color <color> <message>`)
+- **Real-time messaging** via WebSocket
+- **Responsive design** for mobile and desktop
+- **No custom CSS** - only Vuetify utility classes
 
 Remember to replace `your-app-name` with your actual Render service name.

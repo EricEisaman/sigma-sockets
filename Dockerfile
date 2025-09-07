@@ -15,11 +15,11 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build all packages
+# Build all packages first
 RUN npm run build:packages
 
-# Build chat demo
-RUN npm run build:chat
+# Build chat demo (both client and server)
+RUN cd demos/chat && npm run build
 
 # Production stage
 FROM node:18-alpine AS production
@@ -27,8 +27,15 @@ FROM node:18-alpine AS production
 # Set working directory
 WORKDIR /app
 
-# Copy built chat demo
-COPY --from=builder /app/demos/chat/dist ./dist
+# Copy built chat demo server
+COPY --from=builder /app/demos/chat/dist/chat-server.js ./dist/
+COPY --from=builder /app/demos/chat/dist/chat-server.js.map ./dist/
+
+# Copy built Vue client files
+COPY --from=builder /app/demos/chat/dist/assets ./dist/assets/
+COPY --from=builder /app/demos/chat/dist/index.html ./dist/
+
+# Copy package.json for production dependencies
 COPY --from=builder /app/demos/chat/package*.json ./
 
 # Copy built packages (for local dependencies)
