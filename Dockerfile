@@ -79,6 +79,7 @@ COPY --from=builder /app/demos/chat/dist/client/index.html ./dist/
 COPY --from=builder /app/demos/chat/dist/browserconfig.xml ./dist/
 COPY --from=builder /app/demos/chat/dist/site.webmanifest ./dist/
 COPY --from=builder /app/demos/chat/dist/images ./dist/images/
+COPY --from=builder /app/demos/chat/dist/generated ./dist/generated/
 
 # Copy package.json for production dependencies
 COPY --from=builder /app/demos/chat/package*.json ./
