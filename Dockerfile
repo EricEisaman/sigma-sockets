@@ -71,8 +71,8 @@ WORKDIR /app
 COPY --from=builder /app/demos/chat/dist/chat-server.js ./dist/
 
 # Copy built Vue client files (includes public assets from Vite build)
-COPY --from=builder /app/demos/chat/dist/assets ./dist/assets/
-COPY --from=builder /app/demos/chat/dist/index.html ./dist/
+COPY --from=builder /app/demos/chat/dist/client/assets ./dist/assets/
+COPY --from=builder /app/demos/chat/dist/client/index.html ./dist/
 COPY --from=builder /app/demos/chat/dist/browserconfig.xml ./dist/
 COPY --from=builder /app/demos/chat/dist/site.webmanifest ./dist/
 COPY --from=builder /app/demos/chat/dist/images ./dist/images/

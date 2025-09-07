@@ -12,7 +12,8 @@ export default defineConfig({
     host: true
   },
   build: {
-    sourcemap: true
+    sourcemap: true,
+    outDir: 'dist/client'
   },
   test: {
     globals: true,
