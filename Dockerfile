@@ -40,6 +40,12 @@ RUN cd packages/server && npm run build
 RUN cd demos/chat && npx tsc -p tsconfig.build.json
 # Then build the client
 RUN cd demos/chat && npm run build:client
+# Verify server file was created
+RUN ls -la /app/demos/chat/dist/chat-server.js
+
+# Verify build outputs exist
+RUN ls -la /app/demos/chat/dist/
+RUN ls -la /app/demos/chat/public/
 
 # Production stage
 FROM node:18-alpine AS production
@@ -50,12 +56,12 @@ WORKDIR /app
 # Copy built chat demo server
 COPY --from=builder /app/demos/chat/dist/chat-server.js ./dist/
 
-# Copy built Vue client files
+# Copy built Vue client files (includes public assets from Vite build)
 COPY --from=builder /app/demos/chat/dist/assets ./dist/assets/
 COPY --from=builder /app/demos/chat/dist/index.html ./dist/
-
-# Copy public assets (including banner image for social media)
-COPY --from=builder /app/demos/chat/public ./public/
+COPY --from=builder /app/demos/chat/dist/browserconfig.xml ./dist/
+COPY --from=builder /app/demos/chat/dist/site.webmanifest ./dist/
+COPY --from=builder /app/demos/chat/dist/images ./dist/images/
 
 # Copy package.json for production dependencies
 COPY --from=builder /app/demos/chat/package*.json ./
