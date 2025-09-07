@@ -42,8 +42,8 @@ test/
 tests/
 __tests__/
 
-# Scripts (not needed in production)
-scripts/
+# Scripts (needed for building, but not in final image)
+# scripts/
 
 # Temporary files
 tmp/
