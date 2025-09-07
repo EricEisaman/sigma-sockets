@@ -90,7 +90,7 @@ class ChatServer {
 
       if (url === '/') {
         try {
-          const indexPath = join(process.cwd(), 'dist', 'index.html')
+          const indexPath = join(process.cwd(), 'dist/client', 'index.html')
           const html = readFileSync(indexPath, 'utf8')
           res.writeHead(200, { 'Content-Type': 'text/html' })
           res.end(html)
@@ -101,10 +101,10 @@ class ChatServer {
         return
       }
 
-      // Serve static assets
-      if (url.startsWith('/assets/')) {
+      // Serve favicon and other static files
+      if (url === '/favicon.ico' || url.startsWith('/assets/') || url.startsWith('/images/')) {
         try {
-          const assetPath = join(process.cwd(), 'dist', url)
+          const assetPath = join(process.cwd(), 'dist/client', url)
           const asset = readFileSync(assetPath)
           const ext = url.split('.').pop()
           const contentType = ext === 'js' ? 'application/javascript' : 
