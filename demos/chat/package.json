@@ -17,6 +17,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:websocket": "node test-websocket.js",
     "lint": "eslint src",
     "lint:css": "stylelint '**/*.{css,scss,sass,less}' --ignore-path .gitignore",
     "lint:all": "npm run lint && npm run lint:css",
