@@ -321,7 +321,10 @@ const formattedConnectionStatus = computed(() => {
 
 const isInputDisabled = computed(() => {
   const disabled = connectionStatus.value !== 'connected'
-  console.log('🔧 Input disabled state:', disabled, '(connection status:', connectionStatus.value, ')')
+  // Only log in debug mode to avoid console spam
+  if (import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true') {
+    console.log('🔧 Input disabled state:', disabled, '(connection status:', connectionStatus.value, ')')
+  }
   return disabled
 })
 
@@ -362,15 +365,21 @@ const sendMessage = () => {
   const jsonString = JSON.stringify(message)
   const encoder = new TextEncoder()
   const data = encoder.encode(jsonString)
-  console.log('Sending message:', message)
-  console.log('JSON string:', jsonString)
-  console.log('Data bytes:', data)
   
-  // Send the data - client.send() will wrap it in FlatBuffers
-  console.log('🔧 About to send data to client.send(), size:', data.length)
-  console.log('🔧 Data being passed to client.send():', data)
+  // Debug logging only in development
+  if (import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true') {
+    console.log('Sending message:', message)
+    console.log('JSON string:', jsonString)
+    console.log('Data bytes:', data)
+    console.log('🔧 About to send data to client.send(), size:', data.length)
+    console.log('🔧 Data being passed to client.send():', data)
+  }
+  
   const success = client.send(data)
-  console.log('Send result:', success)
+  
+  if (import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true') {
+    console.log('Send result:', success)
+  }
 
   // Clear input (message will be added when received back from server)
   messageInput.value = ''
@@ -386,20 +395,27 @@ const connect = async () => {
       ? `wss://${window.location.host}` 
       : 'ws://localhost:3001'
     
+    // Use debug mode in development, false in production
+    const isDebugMode = import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true'
+    
     client = new SigmaSocketClient({
       url: wsUrl,
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
       heartbeatInterval: 60000, // Increased from 30s to 60s to reduce bandwidth
-      debug: true
+      debug: isDebugMode
     })
 
     // Log client version for debugging
-    console.log('🔧 SigmaSocketClient version:', client.getVersion?.() || 'unknown')
-    console.log('🔧 Client debug mode:', true)
+    if (isDebugMode) {
+      console.log('🔧 SigmaSocketClient version:', client.getVersion?.() || 'unknown')
+      console.log('🔧 Client debug mode:', isDebugMode)
+    }
 
     client.on('connection', (status: ConnectionStatus) => {
-      console.log('🔧 Chat demo received connection status change:', status)
+      if (isDebugMode) {
+        console.log('🔧 Chat demo received connection status change:', status)
+      }
       connectionStatus.value = status
     })
 
@@ -430,7 +446,9 @@ const connect = async () => {
       // Only attempt manual reconnection if we're still in error state after a longer delay
       setTimeout(() => {
         if (connectionStatus.value === ConnectionStatus.Error) {
-          console.log('Manual reconnection attempt after extended error state...')
+          if (import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true') {
+            console.log('Manual reconnection attempt after extended error state...')
+          }
           client.connect().catch((reconnectError) => {
             console.error('Manual reconnection failed:', reconnectError)
           })
@@ -439,7 +457,9 @@ const connect = async () => {
     })
 
     client.on('reconnecting', (info: any) => {
-      console.log('WebSocket reconnecting:', info)
+      if (isDebugMode) {
+        console.log('WebSocket reconnecting:', info)
+      }
       connectionStatus.value = ConnectionStatus.Reconnecting
     })
 
