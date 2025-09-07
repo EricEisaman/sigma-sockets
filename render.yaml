@@ -10,11 +10,11 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3000
+        value: 10000
       - key: SIGMASOCKETS_PORT
-        value: 3000
+        value: 10000
       - key: SIGMASOCKETS_WS_PORT
-        value: 3001
+        value: 10000
       - key: SIGMASOCKETS_HOST
         value: 0.0.0.0
       - key: SIGMASOCKETS_MAX_CONNECTIONS

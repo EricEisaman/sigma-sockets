@@ -173,8 +173,21 @@ class ChatServer {
             console.log('Payload array found, length:', payload.length)
             // Decode the JSON payload
             const jsonData = new TextDecoder().decode(payload)
-            console.log(`Payload JSON: ${jsonData}`)
-            const chatData = JSON.parse(jsonData)
+            console.log(`Raw message data: ${jsonData}`)
+            
+            // Clean up any potential JSON issues
+            const cleanedJsonData = jsonData.trim()
+            console.log(`Cleaned JSON data: ${cleanedJsonData}`)
+            
+            let chatData
+            try {
+              chatData = JSON.parse(cleanedJsonData)
+            } catch (error) {
+              console.error('Error parsing chat data from Connect message:', error)
+              console.error('Raw JSON data:', jsonData)
+              console.error('Cleaned JSON data:', cleanedJsonData)
+              return
+            }
             
             if (chatData.username && (chatData.type === 'chat' || chatData.type === 'color')) {
               console.log('Creating structured message...')

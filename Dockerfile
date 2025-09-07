@@ -59,19 +59,19 @@ RUN addgroup -g 1001 -S nodejs && \
 RUN chown -R sigmasockets:nodejs /app
 USER sigmasockets
 
-# Expose ports
-EXPOSE 3000 3001
+# Expose port (Render.com will set the actual port via environment variable)
+EXPOSE 10000
 
-# Set environment variables
+# Set environment variables (Render.com will override PORT)
 ENV NODE_ENV=production
-ENV PORT=3000
-ENV SIGMASOCKETS_PORT=3000
-ENV SIGMASOCKETS_WS_PORT=3001
+ENV PORT=10000
+ENV SIGMASOCKETS_PORT=10000
+ENV SIGMASOCKETS_WS_PORT=10000
 ENV SIGMASOCKETS_HOST=0.0.0.0
 
-# Health check
+# Health check (use environment variable for port)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get(\`http://localhost:\${process.env.PORT || 10000}/health\`, (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the chat demo server
 CMD ["node", "dist/chat-server.js"]
