@@ -465,3 +465,80 @@ export class SigmaSocketClient {
   }
 }
 
+// Public FlatBuffers generation method for library authors (following best practices)
+// Note: This function is only available in Node.js environments, not in browser builds
+export async function generateFlatBuffers(schemaContent: string, options?: {
+  outputDir?: string;
+  fixTypeScript?: boolean;
+}): Promise<{
+  success: boolean;
+  outputDir: string;
+  generatedFiles: string[];
+  error?: string;
+}> {
+  // Check if we're in a Node.js environment
+  if (typeof window !== 'undefined') {
+    return {
+      success: false,
+      outputDir: '',
+      generatedFiles: [],
+      error: 'generateFlatBuffers is only available in Node.js environments. Use flatc compiler directly for browser builds.'
+    };
+  }
+  
+  // For Node.js environments, users should import from the separate generator file
+  // Parameters are kept for API compatibility
+  return {
+    success: false,
+    outputDir: options?.outputDir || '',
+    generatedFiles: [],
+    error: `Please import generateFlatBuffers from "@sigmasockets/client/generator" for Node.js environments. Schema length: ${schemaContent.length}`
+  };
+}
+
+// Utility function demonstrating the complete FlatBuffers flow (following official best practices)
+export function createAndValidateFlatBuffer<T>(
+  data: T,
+  builderFn: (builder: flatbuffers.Builder, data: T) => flatbuffers.Offset,
+  validatorFn: (bb: flatbuffers.ByteBuffer) => boolean
+): {
+  success: boolean;
+  buffer?: Uint8Array;
+  error?: string;
+} {
+  try {
+    // Step 1: Create FlatBufferBuilder
+    const builder = new flatbuffers.Builder(1024);
+    
+    // Step 2: Use generated code to serialize data object into FlatBuffer binary format
+    const offset = builderFn(builder, data);
+    builder.finish(offset);
+    
+    // Step 3: Get the binary Uint8Array from the builder
+    const buffer = builder.asUint8Array();
+    
+    // Step 4: Wrap the Uint8Array in flatbuffers.ByteBuffer for validation
+    const bb = new flatbuffers.ByteBuffer(buffer);
+    
+    // Step 5: Use generated accessors to read and validate the data
+    const isValid = validatorFn(bb);
+    
+    if (!isValid) {
+      return {
+        success: false,
+        error: 'FlatBuffer validation failed'
+      };
+    }
+    
+    return {
+      success: true,
+      buffer
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
