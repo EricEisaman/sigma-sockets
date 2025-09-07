@@ -1,0 +1,14 @@
+{
+  "name": "SigmaSockets - High-Performance WebSocket System",
+  "short_name": "SigmaSockets",
+  "description": "High-performance WebSocket system featuring FlatBuffers serialization, automatic reconnection, and enterprise-grade security",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "orientation": "portrait-primary",
+  "icons": [],
+  "categories": ["developer", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}
