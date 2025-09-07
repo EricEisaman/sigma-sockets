@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
-    "build:server": "tsc",
+    "build:server": "tsc -p tsconfig.build.json",
     "dev:server:watch": "tsc --watch",
     "dev": "npm run cleanup:ports && concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:chat": "npm run cleanup:ports && concurrently \"npm run dev:server\" \"npm run dev:client\"",
