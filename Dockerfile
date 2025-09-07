@@ -36,8 +36,8 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-# Use tsconfig.build.json approach (proven to work locally)
-RUN cd demos/chat && npx tsc -p tsconfig.build.json
+# Use tsconfig.build.json approach with correct path context
+RUN cd /app/demos/chat && npx tsc -p /app/demos/chat/tsconfig.build.json
 
 # Then build the client
 RUN cd demos/chat && npm run build:client
