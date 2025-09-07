@@ -36,12 +36,10 @@ RUN cd packages/client && npm run build
 RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
-# First build the server with explicit config
-RUN cd demos/chat && npx tsc -p tsconfig.build.json
-# Then build the client
-RUN cd demos/chat && npm run build:client
+# Use the npm build script which should work better
+RUN cd demos/chat && npm run build
 # Verify server file was created
-RUN ls -la /app/demos/chat/dist/chat-server.js
+RUN ls -la /app/demos/chat/dist/chat-server.js || (echo "chat-server.js not found" && ls -la /app/demos/chat/dist/ && exit 1)
 
 # Verify build outputs exist
 RUN ls -la /app/demos/chat/dist/
