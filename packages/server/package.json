@@ -22,7 +22,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run generate:flatbuffers && vite build && tsc --declaration --outDir dist && npm run copy:generated",
+    "build": "npm run generate:flatbuffers && vite build && npm run build:types && npm run copy:generated",
+    "build:types": "tsc --emitDeclarationOnly",
     "copy:generated": "cp -r src/generated dist/",
     "generate:flatbuffers": "node ../../scripts/create-clean-flatbuffers.js",
     "dev": "vite build --watch",
