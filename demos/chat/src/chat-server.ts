@@ -179,17 +179,15 @@ class ChatServer {
     console.log(`Raw data (first 20 bytes):`, Array.from(data.slice(0, 20)))
     
     try {
-      // Try to parse as FlatBuffers message first
-      let message: Message
-      try {
-        const bb = new flatbuffers.ByteBuffer(data)
-        message = Message.getRootAsMessage(bb)
-        console.log(`✅ Successfully parsed FlatBuffers message`)
-      } catch (flatbuffersError) {
-        console.log(`⚠️ Failed to parse as FlatBuffers, trying as raw JSON...`)
-        console.log(`FlatBuffers error:`, flatbuffersError)
-        
-        // Fallback: try to parse as raw JSON
+      // Check if data looks like JSON first (heuristic)
+      const firstByte = data[0]
+      const lastByte = data[data.length - 1]
+      const looksLikeJson = (firstByte === 123 && lastByte === 125) || // { }
+                          (firstByte === 91 && lastByte === 93) || // [ ]
+                          (firstByte === 34) // starts with quote
+      
+      if (looksLikeJson) {
+        console.log(`🔍 Data looks like JSON, trying JSON parsing first...`)
         try {
           const jsonString = new TextDecoder().decode(data)
           console.log(`Raw JSON string: ${jsonString}`)
@@ -210,13 +208,32 @@ class ChatServer {
             return
           }
         } catch (jsonError) {
-          console.error('❌ Failed to parse as JSON:', jsonError)
-          console.error('❌ Raw data:', data)
-          
-          // Send error response to client
-          this.sendErrorMessage(clientId, 'Malformed data received')
-          return
+          console.log(`⚠️ JSON parsing failed, trying FlatBuffers...`)
         }
+      }
+      
+      // Try to parse as FlatBuffers message
+      let message: Message
+      try {
+        const bb = new flatbuffers.ByteBuffer(data)
+        message = Message.getRootAsMessage(bb)
+        
+        // Validate that this is actually a valid FlatBuffers message
+        // Check if the message type is within valid range
+        const messageType = message.type()
+        if (messageType < 0 || messageType > 6) {
+          throw new Error(`Invalid message type: ${messageType}`)
+        }
+        
+        console.log(`✅ Successfully parsed FlatBuffers message`)
+      } catch (flatbuffersError) {
+        console.log(`⚠️ Failed to parse as FlatBuffers, trying as raw JSON...`)
+        console.log(`FlatBuffers error:`, flatbuffersError)
+        
+        // If FlatBuffers parsing failed, send error response
+        console.error('❌ Failed to parse as FlatBuffers:', flatbuffersError)
+        this.sendErrorMessage(clientId, 'Malformed data received')
+        return
       }
       
       console.log(`Message type: ${message.type()}`)
