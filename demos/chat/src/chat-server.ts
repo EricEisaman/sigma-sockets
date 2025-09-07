@@ -45,6 +45,8 @@ class ChatServer {
     this.port = parseInt(process.env['PORT'] || '3002')
     this.wsPort = parseInt(process.env['SIGMASOCKETS_WS_PORT'] || process.env['PORT'] || '3002')
     
+    console.log(`🔧 Port configuration: HTTP=${this.port}, WebSocket=${this.wsPort}`)
+    console.log(`🔧 Environment: PORT=${process.env['PORT']}, SIGMASOCKETS_WS_PORT=${process.env['SIGMASOCKETS_WS_PORT']}`)
     console.log('Creating SigmaSocketServer...')
     try {
       this.wsServer = new SigmaSocketServer({
