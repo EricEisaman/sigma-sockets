@@ -38,18 +38,18 @@ class ChatServer {
   private port: number
 
   constructor() {
-    // Use the same port for both HTTP and WebSocket in production
-    this.port = parseInt(process.env['PORT'] || '3002')
+    // Use Render.com default port (10000) or PORT environment variable
+    this.port = parseInt(process.env['PORT'] || '10000')
     
     console.log(`🔧 Port configuration: HTTP=${this.port}, WebSocket=${this.port}`)
     console.log(`🔧 Environment: PORT=${process.env['PORT']}, SIGMASOCKETS_WS_PORT=${process.env['SIGMASOCKETS_WS_PORT']}`)
-    console.log(`🔧 Render.com assigned port: ${process.env['PORT'] || 'NOT SET'}`)
+    console.log(`🔧 Render.com assigned port: ${process.env['PORT'] || 'NOT SET (using default 10000)'}`)
     console.log(`🔧 Final port being used: ${this.port}`)
     console.log('Creating SigmaSocketServer...')
     try {
       this.wsServer = new SigmaSocketServer({
         port: this.port,
-        host: process.env['SIGMASOCKETS_HOST'] || '0.0.0.0',
+        host: '0.0.0.0', // Must bind to 0.0.0.0 for Render.com HTTP requests
         heartbeatInterval: parseInt(process.env['SIGMASOCKETS_HEARTBEAT_INTERVAL'] || '30000'),
         sessionTimeout: parseInt(process.env['SIGMASOCKETS_SESSION_TIMEOUT'] || '300000'),
         maxConnections: parseInt(process.env['SIGMASOCKETS_MAX_CONNECTIONS'] || '1000'),
@@ -251,6 +251,8 @@ class ChatServer {
       console.log(`🔌 WebSocket available at ws://localhost:${this.port}`)
       console.log(`🔧 Render.com PORT environment: ${process.env['PORT']}`)
       console.log(`🔧 Server actually listening on: ${this.port}`)
+      console.log(`🔧 Binding to 0.0.0.0 (required for Render.com)`)
+      console.log(`🔧 Render.com default port: 10000`)
 
     } catch (error) {
       console.error('Failed to start chat server:', error)

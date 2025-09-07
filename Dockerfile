@@ -47,11 +47,8 @@ RUN chown -R sigmasockets:nodejs /app
 # Switch to non-root user
 USER sigmasockets
 
-# Expose common ports (Render.com will use PORT environment variable at runtime)
+# Expose Render.com default port (10000) and common alternatives
 EXPOSE 10000
-EXPOSE 3000
-EXPOSE 3001
-EXPOSE 3002
 
 # Health check using dynamic port
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
