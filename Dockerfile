@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy package files for dependency installation
 COPY demos/chat/package*.json ./
-COPY demos/chat/tsconfig*.json ./
+COPY demos/chat/tsconfig.docker.json ./tsconfig.json
 COPY demos/chat/vite.config.ts ./
 
 # Install dependencies
