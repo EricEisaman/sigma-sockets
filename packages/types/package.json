@@ -1,6 +1,6 @@
 {
   "name": "sigmasockets-types",
-  "version": "1.0.0",
+  "version": "1.0.16",
   "description": "Shared TypeScript type definitions for SigmaSockets",
   "type": "module",
   "main": "./dist/index.js",

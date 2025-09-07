@@ -222,8 +222,21 @@ export class SigmaSocketServer {
       ws.binaryType = 'arraybuffer';
       
       // Set up WebSocket event handlers
-      ws.on('message', (data: Buffer) => {
-        this.handleWebSocketMessage(ws, data);
+      ws.on('message', (data: Buffer | ArrayBuffer | Buffer[]) => {
+        // Ensure we're working with a Buffer
+        let bufferData: Buffer;
+        if (Buffer.isBuffer(data)) {
+          bufferData = data;
+        } else if (data instanceof ArrayBuffer) {
+          bufferData = Buffer.from(data);
+        } else if (Array.isArray(data)) {
+          bufferData = Buffer.concat(data);
+        } else {
+          console.error('🔧 [SERVER] Unexpected data type received:', typeof data, (data as any).constructor?.name || 'unknown');
+          return;
+        }
+        
+        this.handleWebSocketMessage(ws, bufferData);
       });
 
       ws.on('close', (code: number, reason: Buffer) => {
@@ -263,6 +276,16 @@ export class SigmaSocketServer {
       console.log(`🔧 [SERVER] WebSocket binaryType: ${ws.binaryType}`);
       console.log(`🔧 [SERVER] Is Buffer: ${Buffer.isBuffer(data)}`);
       console.log(`🔧 [SERVER] Is ArrayBuffer: ${data instanceof ArrayBuffer}`);
+      
+      // Check if data looks like text (JSON) or binary (FlatBuffers)
+      const isTextData = data.every(byte => byte >= 32 && byte <= 126);
+      console.log(`🔧 [SERVER] Data appears to be: ${isTextData ? 'TEXT (JSON)' : 'BINARY (FlatBuffers)'}`);
+      
+      // If it's text data, log the actual string
+      if (isTextData) {
+        const textData = data.toString('utf8');
+        console.log(`🔧 [SERVER] Text content: ${textData.substring(0, 100)}...`);
+      }
 
       // Validate message size
       const sizeValidation = this.securityManager.validateMessageSize(data);

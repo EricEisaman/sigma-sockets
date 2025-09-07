@@ -1,6 +1,6 @@
 {
   "name": "sigmasockets-server",
-  "version": "1.0.8",
+  "version": "1.0.16",
   "description": "High-performance WebSocket server with FlatBuffers serialization and session management",
   "type": "module",
   "main": "./dist/index.js",

@@ -262,6 +262,10 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import type { MessageType, ColorMessage, ChatMessage, UserCountMessage, AllMessageTypes } from './types.js'
 import { parseColorCommand } from './color-parser.js'
 import { SigmaSocketClient, ConnectionStatus } from 'sigmasockets-client'
+import * as flatbuffers from 'flatbuffers'
+import { Message } from './generated/sigma-sockets/message.js'
+import { MessageType as FlatBuffersMessageType } from './generated/sigma-sockets/message-type.js'
+import { DataMessage } from './generated/sigma-sockets/data-message.js'
 
 // Available colors for the color picker
 const availableColors = ref([
@@ -361,17 +365,26 @@ const sendMessage = () => {
     } as ChatMessage
   }
 
-  // Create FlatBuffer first, then send
-  const jsonString = JSON.stringify(message)
-  const encoder = new TextEncoder()
-  const data = encoder.encode(jsonString)
+  // Create FlatBuffers message properly
+  const builder = new flatbuffers.Builder(1024)
+  const payload = builder.createString(JSON.stringify(message))
+  
+  DataMessage.startDataMessage(builder)
+  DataMessage.addPayload(builder, payload)
+  const dataMessage = DataMessage.endDataMessage(builder)
+  
+  Message.startMessage(builder)
+  Message.addType(builder, FlatBuffersMessageType.Data)
+  Message.addData(builder, dataMessage)
+  const messageObj = Message.endMessage(builder)
+  
+  builder.finish(messageObj)
+  const data = builder.asUint8Array()
   
   // Debug logging only in development
   if (import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true') {
     console.log('Sending message:', message)
-    console.log('JSON string:', jsonString)
-    console.log('Data bytes:', data)
-    console.log('🔧 About to send data to client.send(), size:', data.length)
+    console.log('🔧 Created FlatBuffers message, size:', data.length)
     console.log('🔧 Data being passed to client.send():', data)
   }
   
