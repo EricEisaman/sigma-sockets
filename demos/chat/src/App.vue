@@ -96,7 +96,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container fluid class="pa-4 pa-md-6 pa-lg-8 mt-10 mt-md-6">
+      <v-container fluid class="pa-4 pa-md-6 pa-lg-8 pt-10 pt-md-6">
         <v-row justify="center">
           <v-col cols="12" xl="10" lg="11" md="12">
             <v-row>
