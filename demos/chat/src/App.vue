@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <v-app-bar color="primary" dark elevation="4" height="auto">
-      <v-container fluid>
+    <v-app-bar color="primary" dark elevation="4" height="auto" class="py-3">
+      <v-container fluid class="py-0">
         <!-- Mobile Layout -->
         <v-row class="d-flex d-md-none" no-gutters>
           <v-col cols="12">
@@ -54,15 +54,15 @@
         <v-row class="d-none d-md-flex" align="center" no-gutters>
           <v-col cols="auto">
             <div class="d-flex align-center">
-              <v-avatar size="48" color="secondary" class="mr-4">
-                <v-icon size="32" color="white">mdi-lightning-bolt</v-icon>
+              <v-avatar size="40" color="secondary" class="mr-3">
+                <v-icon size="24" color="white">mdi-lightning-bolt</v-icon>
               </v-avatar>
               <div>
-                <h1 class="text-h4 font-weight-bold text-white mb-0">
+                <h1 class="text-h6 font-weight-bold text-white mb-0">
                   SigmaSockets
                 </h1>
-                <p class="text-subtitle-2 text-white opacity-80 mb-0">
-                  Real-time Chat Demo
+                <p class="text-caption text-white opacity-80 mb-0">
+                  Chat Demo
                 </p>
               </div>
             </div>
@@ -72,20 +72,20 @@
             <v-chip
               v-if="connectionStatus === 'connected'"
               color="info"
-              size="large"
+              size="small"
               variant="elevated"
             >
-              <v-icon start>mdi-account-group</v-icon>
+              <v-icon start size="small">mdi-account-group</v-icon>
               {{ userCount }} user{{ userCount !== 1 ? 's' : '' }}
             </v-chip>
           </v-col>
           <v-col cols="auto">
             <v-chip
               :color="connectionStatus === 'connected' ? 'success' : 'error'"
-              size="large"
+              size="small"
               variant="elevated"
             >
-              <v-icon start>
+              <v-icon start size="small">
                 {{ connectionStatus === 'connected' ? 'mdi-wifi' : 'mdi-wifi-off' }}
               </v-icon>
               {{ formattedConnectionStatus }}
@@ -96,7 +96,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container fluid class="pa-6">
+      <v-container fluid class="pa-4">
         <v-row justify="center">
           <v-col cols="12" xl="10" lg="11" md="12">
             <v-row>
@@ -386,7 +386,8 @@ const connect = async () => {
       url: wsUrl,
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
-      heartbeatInterval: 30000
+      heartbeatInterval: 30000,
+      debug: true
     })
 
     client.on('connection', (status: ConnectionStatus) => {

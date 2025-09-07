@@ -18,6 +18,9 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:websocket": "node test-websocket.js",
+    "test:flatbuffers": "node test-flatbuffers.js",
+    "test:simple": "node test-simple.js",
+    "test:render": "node test-render.js",
     "lint": "eslint src",
     "lint:css": "stylelint '**/*.{css,scss,sass,less}' --ignore-path .gitignore",
     "lint:all": "npm run lint && npm run lint:css",
@@ -36,7 +39,7 @@
   "license": "MIT",
   "dependencies": {
     "@mdi/font": "7.4.47",
-    "sigmasockets-client": "1.0.1",
+    "sigmasockets-client": "1.0.2",
     "sigmasockets-server": "1.0.6",
     "vue": "^3.4.0",
     "vuetify": "3.9.7"
