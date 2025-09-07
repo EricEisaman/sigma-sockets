@@ -29,6 +29,8 @@ export class SigmaSocketClient {
   private reconnectAttempts = 0;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private connectionHealthTimer: NodeJS.Timeout | null = null;
+  private lastHeartbeatReceived: Date | null = null;
   private messageIdCounter = 0n;
   private eventListeners: Map<keyof SigmaSocketEvents, Set<Function>> = new Map();
 
@@ -47,6 +49,9 @@ export class SigmaSocketClient {
     this.eventListeners.set('message', new Set());
     this.eventListeners.set('error', new Set());
     this.eventListeners.set('reconnecting', new Set());
+
+    // Set up visibility and activity monitoring
+    this.setupVisibilityMonitoring();
   }
 
   public connect(): Promise<void> {
@@ -113,8 +118,17 @@ export class SigmaSocketClient {
     }
 
     this.ws = null;
-    this.session = null;
+    // Don't clear session on disconnect - preserve it for potential reconnection
+    // this.session = null;
     this.setStatus(ConnectionStatus.Disconnected);
+  }
+
+  public clearSession(): void {
+    // Explicitly clear session when user wants to start fresh
+    this.session = null;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('sigmasockets-session-id');
+    }
   }
 
   public send(data: Uint8Array): boolean {
@@ -259,7 +273,7 @@ export class SigmaSocketClient {
   }
 
   public getVersion(): string {
-    return '1.0.10';
+    return '1.0.12';
   }
 
   private onWebSocketOpen(): void {
@@ -409,8 +423,9 @@ export class SigmaSocketClient {
   }
 
   private handleHeartbeatMessage(_message: Message): void {
+    this.lastHeartbeatReceived = new Date();
     if (this.session) {
-      this.session.lastHeartbeat = new Date();
+      this.session.lastHeartbeat = this.lastHeartbeatReceived;
     }
     
     // Send heartbeat response
@@ -488,6 +503,88 @@ export class SigmaSocketClient {
         }
       }
     }, this.config.heartbeatInterval);
+
+    // Start connection health monitoring
+    this.startConnectionHealthCheck();
+  }
+
+  private startConnectionHealthCheck(): void {
+    this.connectionHealthTimer = setInterval(() => {
+      if (this.status === ConnectionStatus.Connected) {
+        // Check if we haven't received a heartbeat in too long
+        const now = new Date();
+        const timeSinceLastHeartbeat = this.lastHeartbeatReceived 
+          ? now.getTime() - this.lastHeartbeatReceived.getTime()
+          : Infinity;
+
+        // If no heartbeat received in 2x the heartbeat interval, consider connection dead
+        if (timeSinceLastHeartbeat > this.config.heartbeatInterval * 2) {
+          if (this.config.debug) {
+            console.log('🔧 Connection health check failed - no heartbeat received');
+          }
+          this.handleConnectionFailure();
+        }
+      }
+    }, this.config.heartbeatInterval);
+  }
+
+  private setupVisibilityMonitoring(): void {
+    if (typeof document !== 'undefined') {
+      // Monitor tab visibility changes
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && this.status === ConnectionStatus.Disconnected) {
+          if (this.config.debug) {
+            console.log('🔧 Tab became visible and connection is disconnected - attempting reconnect');
+          }
+          this.connect().catch(() => {
+            // Connection failed, will be handled by error handlers
+          });
+        }
+      });
+
+      // Monitor window focus/blur events
+      window.addEventListener('focus', () => {
+        if (this.status === ConnectionStatus.Disconnected) {
+          if (this.config.debug) {
+            console.log('🔧 Window focused and connection is disconnected - attempting reconnect');
+          }
+          this.connect().catch(() => {
+            // Connection failed, will be handled by error handlers
+          });
+        }
+      });
+
+      // Monitor online/offline events
+      window.addEventListener('online', () => {
+        if (this.status === ConnectionStatus.Disconnected || this.status === ConnectionStatus.Error) {
+          if (this.config.debug) {
+            console.log('🔧 Network came online - attempting reconnect');
+          }
+          this.connect().catch(() => {
+            // Connection failed, will be handled by error handlers
+          });
+        }
+      });
+    }
+  }
+
+  private handleConnectionFailure(): void {
+    if (this.config.debug) {
+      console.log('🔧 Handling connection failure - closing WebSocket and attempting reconnect');
+    }
+    
+    // Close the WebSocket if it exists
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+    
+    // Clear timers
+    this.clearTimers();
+    
+    // Attempt to reconnect
+    this.setStatus(ConnectionStatus.Reconnecting);
+    this.scheduleReconnect();
   }
 
   private clearTimers(): void {
@@ -499,6 +596,11 @@ export class SigmaSocketClient {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
+    }
+
+    if (this.connectionHealthTimer) {
+      clearInterval(this.connectionHealthTimer);
+      this.connectionHealthTimer = null;
     }
   }
 
@@ -523,7 +625,29 @@ export class SigmaSocketClient {
   }
 
   private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Try to get existing session ID from localStorage
+    if (typeof localStorage !== 'undefined') {
+      const existingSessionId = localStorage.getItem('sigmasockets-session-id');
+      if (existingSessionId) {
+        if (this.config.debug) {
+          console.log('🔧 Using existing session ID from localStorage:', existingSessionId);
+        }
+        return existingSessionId;
+      }
+    }
+
+    // Generate new session ID
+    const newSessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Store in localStorage for persistence
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('sigmasockets-session-id', newSessionId);
+      if (this.config.debug) {
+        console.log('🔧 Generated new session ID and stored in localStorage:', newSessionId);
+      }
+    }
+    
+    return newSessionId;
   }
 }
 
