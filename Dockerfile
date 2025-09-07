@@ -92,13 +92,8 @@ COPY --from=builder /app/packages/types/dist ./packages/types/dist
 COPY --from=builder /app/packages/client/dist/types ./packages/client/dist/types
 COPY --from=builder /app/packages/server/dist/types ./packages/server/dist/types
 
-# Copy package.json files for local dependencies
-COPY --from=builder /app/packages/client/package.json ./packages/client/
-COPY --from=builder /app/packages/server/package.json ./packages/server/
-COPY --from=builder /app/packages/types/package.json ./packages/types/
-
-# Install only production dependencies for chat demo
-RUN npm install --omit=dev
+# Copy node_modules from builder stage (includes all dependencies)
+COPY --from=builder /app/demos/chat/node_modules ./node_modules/
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
