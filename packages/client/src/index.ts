@@ -128,6 +128,9 @@ export class SigmaSocketClient {
     try {
       if (this.config.debug) {
         console.log('🔧 Creating FlatBuffers message...');
+        console.log('🔧 Input data size:', data.length);
+        console.log('🔧 Input data type:', data.constructor.name);
+        console.log('🔧 Input data first 10 bytes:', Array.from(data.slice(0, 10)));
       }
       const builder = new flatbuffers.Builder(1024 + data.length);
       const payload = DataMessage.createPayloadVector(builder, data);
@@ -178,13 +181,20 @@ export class SigmaSocketClient {
           console.log('🔧 Data type:', flatbuffersData.constructor.name);
           console.log('🔧 First 10 bytes:', Array.from(flatbuffersData.slice(0, 10)));
         }
+        // Add unique transmission ID to track this specific send
+        const transmissionId = `TX_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        if (this.config.debug) {
+          console.log(`🔧 [${transmissionId}] About to call WebSocket.send() with FlatBuffers data`);
+          console.log(`🔧 [${transmissionId}] Original data size: ${data.length}`);
+          console.log(`🔧 [${transmissionId}] FlatBuffers data size: ${flatbuffersData.length}`);
+          console.log(`🔧 [${transmissionId}] WebSocket readyState: ${this.ws.readyState}`);
+        }
+        
         this.ws.send(flatbuffersData);
         
-        // Additional debugging to verify what was actually sent
         if (this.config.debug) {
-          console.log('🔧 WebSocket.send() called with FlatBuffers data');
-          console.log('🔧 Original data size:', data.length);
-          console.log('🔧 FlatBuffers data size:', flatbuffersData.length);
+          console.log(`🔧 [${transmissionId}] WebSocket.send() completed successfully`);
         }
       } else {
         if (this.config.debug) {
@@ -230,7 +240,7 @@ export class SigmaSocketClient {
   }
 
   public getVersion(): string {
-    return '1.0.8';
+    return '1.0.9';
   }
 
   private onWebSocketOpen(): void {

@@ -175,13 +175,17 @@ class ChatServer {
   }
 
   private handleMessage(clientId: string, data: Uint8Array) {
-    console.log(`📥 Received message from ${clientId}, length: ${data.length}`)
-    console.log(`📥 Data type: ${data.constructor.name}`)
-    console.log(`📥 Raw data (first 20 bytes):`, Array.from(data.slice(0, 20)))
+    const messageId = `MSG_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`📥 [${messageId}] Received message from ${clientId}, length: ${data.length}`)
+    console.log(`📥 [${messageId}] Data type: ${data.constructor.name}`)
+    console.log(`📥 [${messageId}] Raw data (first 20 bytes):`, Array.from(data.slice(0, 20)))
     
     // Check if this looks like binary FlatBuffers or text JSON
     const isLikelyText = data.every(byte => byte >= 32 && byte <= 126) // printable ASCII
-    console.log(`📥 Data appears to be: ${isLikelyText ? 'TEXT (JSON)' : 'BINARY (FlatBuffers)'}`)
+    console.log(`📥 [${messageId}] Data appears to be: ${isLikelyText ? 'TEXT (JSON)' : 'BINARY (FlatBuffers)'}`)
+    
+    // Log exact timestamp for correlation with client logs
+    console.log(`📥 [${messageId}] Server received at: ${new Date().toISOString()}`)
     
     try {
       // Check if data looks like JSON first (heuristic)
