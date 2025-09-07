@@ -71,13 +71,17 @@ export class SigmaSocketServer {
     this.eventListeners.set('error', new Set());
 
     // Create HTTP server for WebSocket upgrade
-    this.httpServer = createServer((req, res) => {
-      // Check if this is a WebSocket upgrade request
-      if (req.headers.upgrade === 'websocket') {
-        // Let the WebSocket server handle the upgrade
-        return;
-      }
-      
+    this.httpServer = createServer();
+    
+    // Create WebSocket server with security configuration
+    const wsConfig = createSecureWebSocketConfig(securityConfig || defaultSecurityConfig);
+    this.wsServer = new WebSocketServer({
+      server: this.httpServer,
+      ...wsConfig
+    });
+
+    // Add HTTP request handler after WebSocket server is created
+    this.httpServer.on('request', (req, res) => {
       // Handle regular HTTP requests with the provided handler
       if (this.requestHandler) {
         this.requestHandler(req, res);
@@ -85,13 +89,6 @@ export class SigmaSocketServer {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not found');
       }
-    });
-    
-    // Create WebSocket server with security configuration
-    const wsConfig = createSecureWebSocketConfig(securityConfig || defaultSecurityConfig);
-    this.wsServer = new WebSocketServer({
-      server: this.httpServer,
-      ...wsConfig
     });
 
     this.setupWebSocketServer();
