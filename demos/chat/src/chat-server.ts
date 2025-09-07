@@ -43,6 +43,8 @@ class ChatServer {
     
     console.log(`🔧 Port configuration: HTTP=${this.port}, WebSocket=${this.port}`)
     console.log(`🔧 Environment: PORT=${process.env['PORT']}, SIGMASOCKETS_WS_PORT=${process.env['SIGMASOCKETS_WS_PORT']}`)
+    console.log(`🔧 Render.com assigned port: ${process.env['PORT'] || 'NOT SET'}`)
+    console.log(`🔧 Final port being used: ${this.port}`)
     console.log('Creating SigmaSocketServer...')
     try {
       this.wsServer = new SigmaSocketServer({
@@ -247,6 +249,8 @@ class ChatServer {
       console.log(`🌐 HTTP server started on port ${this.port}`)
       console.log(`📱 Open http://localhost:${this.port} to access the chat demo`)
       console.log(`🔌 WebSocket available at ws://localhost:${this.port}`)
+      console.log(`🔧 Render.com PORT environment: ${process.env['PORT']}`)
+      console.log(`🔧 Server actually listening on: ${this.port}`)
 
     } catch (error) {
       console.error('Failed to start chat server:', error)
