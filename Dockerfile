@@ -4,19 +4,36 @@ FROM node:18-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-# Copy package files for better caching
+# Copy root package.json and workspace configuration
 COPY package*.json ./
-COPY packages/*/package*.json ./packages/*/
+COPY tsconfig.json ./
+
+# Copy packages with their package.json files
+COPY packages/types/package*.json ./packages/types/
+COPY packages/client/package*.json ./packages/client/
+COPY packages/server/package*.json ./packages/server/
+
+# Copy chat demo package.json
 COPY demos/chat/package*.json ./demos/chat/
 
 # Install dependencies
 RUN npm install
 
-# Copy source code
-COPY . .
+# Copy source code for packages
+COPY packages/types/ ./packages/types/
+COPY packages/client/ ./packages/client/
+COPY packages/server/ ./packages/server/
 
-# Build all packages first
-RUN npm run build:packages
+# Copy scripts needed for building
+COPY scripts/ ./scripts/
+
+# Copy chat demo source
+COPY demos/chat/ ./demos/chat/
+
+# Build packages individually to avoid workspace conflicts
+RUN cd packages/types && npm run build
+RUN cd packages/client && npm run build
+RUN cd packages/server && npm run build
 
 # Build chat demo (both client and server)
 RUN cd demos/chat && npm run build
