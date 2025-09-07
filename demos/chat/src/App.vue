@@ -390,6 +390,10 @@ const connect = async () => {
       debug: true
     })
 
+    // Log client version for debugging
+    console.log('🔧 SigmaSocketClient version:', client.getVersion?.() || 'unknown')
+    console.log('🔧 Client debug mode:', true)
+
     client.on('connection', (status: ConnectionStatus) => {
       connectionStatus.value = status
     })

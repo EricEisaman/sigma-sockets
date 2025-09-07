@@ -173,6 +173,11 @@ export class SigmaSocketClient {
       
       // Only send FlatBuffers data, never raw JSON
       if (this.ws && flatbuffersData) {
+        if (this.config.debug) {
+          console.log('🔧 Sending FlatBuffers binary data to WebSocket, size:', flatbuffersData.length);
+          console.log('🔧 Data type:', flatbuffersData.constructor.name);
+          console.log('🔧 First 10 bytes:', Array.from(flatbuffersData.slice(0, 10)));
+        }
         this.ws.send(flatbuffersData);
       } else {
         if (this.config.debug) {
@@ -215,6 +220,10 @@ export class SigmaSocketClient {
 
   public getSession(): ClientSession | null {
     return this.session;
+  }
+
+  public getVersion(): string {
+    return '1.0.8';
   }
 
   private onWebSocketOpen(): void {
