@@ -385,7 +385,7 @@ const connect = async () => {
       url: wsUrl,
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
-      heartbeatInterval: 30000,
+      heartbeatInterval: 60000, // Increased from 30s to 60s to reduce bandwidth
       debug: true
     })
 

@@ -282,7 +282,11 @@ export class SigmaSocketClient {
       if (this.config.debug) {
         const messageType = message.type();
         const dataType = message.dataType();
-        console.log('📥 Received FlatBuffers message - type:', messageType, 'dataType:', dataType);
+        
+        // Only log non-heartbeat messages to reduce console spam
+        if (messageType !== MessageType.Heartbeat) {
+          console.log('📥 Received FlatBuffers message - type:', messageType, 'dataType:', dataType);
+        }
         
         // Validate message type is within expected range
         if (messageType < 0 || messageType > 6) {
@@ -432,6 +436,11 @@ export class SigmaSocketClient {
 
         builder.finish(message);
         this.ws.send(builder.asUint8Array());
+        
+        // Only log heartbeat sending in debug mode occasionally to reduce spam
+        if (this.config.debug && Math.random() < 0.1) { // 10% chance to log
+          console.log('💓 Heartbeat sent');
+        }
       }
     }, this.config.heartbeatInterval);
   }
