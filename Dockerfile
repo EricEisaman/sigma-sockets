@@ -92,8 +92,22 @@ COPY --from=builder /app/packages/types/dist ./packages/types/dist
 COPY --from=builder /app/packages/client/dist/types ./packages/client/dist/types
 COPY --from=builder /app/packages/server/dist/types ./packages/server/dist/types
 
-# Copy node_modules from builder stage (includes all dependencies)
-COPY --from=builder /app/demos/chat/node_modules ./node_modules/
+# Copy package.json and create a production version without local dependencies
+COPY --from=builder /app/demos/chat/package.json ./package.json.tmp
+
+# Remove local package dependencies and install production dependencies
+RUN sed 's/"sigmasockets-client": "\*",//g; s/"sigmasockets-server": "\*",//g' package.json.tmp > package.json && \
+    npm install --production && \
+    rm package.json.tmp
+
+# Copy the built local packages to node_modules
+RUN mkdir -p node_modules/sigmasockets-server && \
+    cp -r packages/server/dist/* node_modules/sigmasockets-server/ && \
+    cp packages/server/package.json node_modules/sigmasockets-server/
+
+RUN mkdir -p node_modules/sigmasockets-client && \
+    cp -r packages/client/dist/* node_modules/sigmasockets-client/ && \
+    cp packages/client/package.json node_modules/sigmasockets-client/
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
