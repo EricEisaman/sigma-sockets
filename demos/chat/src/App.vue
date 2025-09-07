@@ -96,14 +96,14 @@
     </v-app-bar>
 
     <v-main>
-      <v-container fluid class="pa-4">
+      <v-container fluid class="pa-4 pa-md-6 pa-lg-8">
         <v-row justify="center">
           <v-col cols="12" xl="10" lg="11" md="12">
             <v-row>
               <!-- Main Chat Area -->
               <v-col cols="12" lg="8">
                 <v-card elevation="8" rounded="xl">
-                  <v-card-title color="primary" class="pa-6">
+                  <v-card-title color="primary" class="pa-4 pa-md-6 pa-lg-8">
                     <div class="d-flex align-center">
                       <v-icon size="28" class="mr-3" color="primary">mdi-chat-processing</v-icon>
                       <h2 class="text-h5 font-weight-bold mb-0">Live Chat</h2>
@@ -198,11 +198,11 @@
                   <!-- Commands Card -->
                   <v-col cols="12">
                     <v-card elevation="6" rounded="xl" class="mb-4">
-                      <v-card-title color="primary">
+                      <v-card-title color="primary" class="pa-4 pa-md-5 pa-lg-6">
                         <v-icon size="24" class="mr-2" color="primary">mdi-code-tags</v-icon>
                         Commands
                       </v-card-title>
-                      <v-card-text>
+                      <v-card-text class="pa-4 pa-md-5 pa-lg-6">
                         <v-list density="compact">
                           <v-list-item class="px-0">
                             <template #prepend>
@@ -365,10 +365,7 @@ const sendMessage = () => {
   const success = client.send(data)
   console.log('Send result:', success)
 
-  // Add to local messages
-  addMessage(message)
-
-  // Clear input
+  // Clear input (message will be added when received back from server)
   messageInput.value = ''
 }
 
