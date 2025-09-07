@@ -43,7 +43,7 @@ class ChatServer {
   constructor() {
     // Use the same port for both HTTP and WebSocket in production
     this.port = parseInt(process.env['PORT'] || '3002')
-    this.wsPort = parseInt(process.env['SIGMASOCKETS_WS_PORT'] || process.env['PORT'] || '3001')
+    this.wsPort = parseInt(process.env['SIGMASOCKETS_WS_PORT'] || process.env['PORT'] || '3002')
     
     console.log('Creating SigmaSocketServer...')
     try {
