@@ -35,7 +35,7 @@
   "license": "MIT",
   "dependencies": {
     "@mdi/font": "7.4.47",
-    "sigmasockets-client": "^1.0.0",
+    "sigmasockets-client": "1.0.1",
     "sigmasockets-server": "1.0.6",
     "vue": "^3.4.0",
     "vuetify": "3.9.7"

@@ -118,10 +118,12 @@ export class SigmaSocketClient {
 
   public send(data: Uint8Array): boolean {
     if (this.status !== ConnectionStatus.Connected || !this.ws) {
+      console.log('❌ Client not connected or WebSocket not available');
       return false;
     }
 
     try {
+      console.log('🔧 Creating FlatBuffers message...');
       const builder = new flatbuffers.Builder(1024 + data.length);
       const payload = DataMessage.createPayloadVector(builder, data);
       const messageId = ++this.messageIdCounter;
@@ -140,7 +142,9 @@ export class SigmaSocketClient {
       const message = Message.endMessage(builder);
 
       builder.finish(message);
-      this.ws.send(builder.asUint8Array());
+      const flatbuffersData = builder.asUint8Array();
+      console.log('🔧 Sending FlatBuffers message, size:', flatbuffersData.length);
+      this.ws.send(flatbuffersData);
 
       if (this.session) {
         this.session.lastMessageId = messageId;
@@ -148,6 +152,7 @@ export class SigmaSocketClient {
 
       return true;
     } catch (error) {
+      console.error('❌ FlatBuffers serialization failed:', error);
       this.emit('error', error instanceof Error ? error : new Error(String(error)));
       return false;
     }
