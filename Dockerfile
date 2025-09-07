@@ -20,6 +20,10 @@ COPY demos/chat/index.html ./
 # Build the application
 RUN npm run build
 
+# Debug: Check what was built
+RUN ls -la dist/ || echo "dist directory not found"
+RUN find . -name "*.js" -type f || echo "No JS files found"
+
 # Production stage
 FROM node:18-alpine AS production
 

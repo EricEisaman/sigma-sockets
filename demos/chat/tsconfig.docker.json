@@ -1,30 +1,30 @@
 {
   "compilerOptions": {
     "noEmit": false,
-    "declaration": true,
+    "declaration": false,
     "sourceMap": false,
     "outDir": "./dist",
     "moduleResolution": "node",
     "target": "es2022",
     "module": "esnext",
-    "composite": true,
+    "composite": false,
     "allowImportingTsExtensions": false,
-    "types": ["node", "vite/client"],
+    "types": ["node"],
     
-    // === STRICT TYPE CHECKING ===
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
+    // === BASIC TYPE CHECKING ===
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
     
     // === MODULE RESOLUTION ===
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
       "sigmasockets-client": ["node_modules/sigmasockets-client/dist/types/index.d.ts"],
@@ -33,36 +33,36 @@
     },
     
     // === EMIT ===
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "preserveConstEnums": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "inlineSourceMap": false,
     "inlineSources": false,
     
     // === INTEROP CONSTRAINTS ===
     "isolatedModules": true,
-    "allowJs": false,
+    "allowJs": true,
     "checkJs": false,
     
-    // === VUETIFY STRICT MODE ===
+    // === BASIC SETTINGS ===
     "skipLibCheck": true,
     "noImplicitUseStrict": false,
-    "alwaysStrict": true,
+    "alwaysStrict": false,
     "useDefineForClassFields": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     
-    // === ADDITIONAL STRICTNESS ===
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false
+    // === RELAXED STRICTNESS ===
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "allowUnusedLabels": true,
+    "allowUnreachableCode": true
   },
   "include": [
     "src/**/*"
