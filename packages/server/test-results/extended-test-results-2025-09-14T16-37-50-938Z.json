@@ -1,0 +1,141 @@
+{
+  "sessionId": "test_1757867836706",
+  "startTime": 1757867836706,
+  "endTime": 1757867870773,
+  "connections": [
+    {
+      "id": "conn_0",
+      "ws": {},
+      "startTime": 1757867838764,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868788,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 1,
+      "endTime": 1757867868968
+    },
+    {
+      "id": "conn_1",
+      "ws": {},
+      "startTime": 1757867838772,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868820,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 2,
+      "endTime": 1757867868974
+    },
+    {
+      "id": "conn_2",
+      "ws": {},
+      "startTime": 1757867838786,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868837,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 3,
+      "endTime": 1757867868980
+    },
+    {
+      "id": "conn_3",
+      "ws": {},
+      "startTime": 1757867838800,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868851,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 4,
+      "endTime": 1757867868987
+    },
+    {
+      "id": "conn_4",
+      "ws": {},
+      "startTime": 1757867838812,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868863,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 5,
+      "endTime": 1757867868994
+    },
+    {
+      "id": "conn_5",
+      "ws": {},
+      "startTime": 1757867838824,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868876,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 6,
+      "endTime": 1757867868999
+    },
+    {
+      "id": "conn_6",
+      "ws": {},
+      "startTime": 1757867838835,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868887,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 7,
+      "endTime": 1757867869005
+    },
+    {
+      "id": "conn_7",
+      "ws": {},
+      "startTime": 1757867838849,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868899,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 8,
+      "endTime": 1757867869011
+    },
+    {
+      "id": "conn_8",
+      "ws": {},
+      "startTime": 1757867838862,
+      "keepAliveCount": 15,
+      "lastKeepAlive": 1757867868904,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 9,
+      "endTime": 1757867869017
+    },
+    {
+      "id": "conn_9",
+      "ws": {},
+      "startTime": 1757867838875,
+      "keepAliveCount": 14,
+      "lastKeepAlive": 1757867866912,
+      "isAlive": true,
+      "connected": false,
+      "keepAliveInterval": 10,
+      "endTime": 1757867869023
+    }
+  ],
+  "keepAliveStats": {
+    "totalKeepAlives": 149,
+    "keepAlivesPerConnection": {
+      "conn_0": 15,
+      "conn_1": 15,
+      "conn_2": 15,
+      "conn_3": 15,
+      "conn_4": 15,
+      "conn_5": 15,
+      "conn_6": 15,
+      "conn_7": 15,
+      "conn_8": 15,
+      "conn_9": 14
+    },
+    "averageKeepAliveInterval": 201.34228187919464,
+    "keepAliveSuccessRate": 99.33333333333333
+  },
+  "performanceMetrics": {
+    "totalConnections": 10,
+    "successfulConnections": 10,
+    "failedConnections": 0,
+    "averageConnectionTime": 30107.1,
+    "maxConcurrentConnections": 10
+  }
+}

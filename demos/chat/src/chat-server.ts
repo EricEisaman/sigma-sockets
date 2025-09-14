@@ -5,6 +5,7 @@ import * as flatbuffers from 'flatbuffers'
 import { Message } from './generated/sigma-sockets/message.js'
 import { MessageType } from './generated/sigma-sockets/message-type.js'
 import { DataMessage } from './generated/sigma-sockets/data-message.js'
+// import { envConfig } from '../env.config.js'
 
 interface ChatMessage {
   type: 'chat'
@@ -38,18 +39,25 @@ class ChatServer {
   private port: number
 
   constructor() {
-    // Use Render.com default port (10000) or PORT environment variable
-    this.port = parseInt(process.env['PORT'] || '10000')
+    // Use environment-based configuration
+    const isDev = process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'dev'
+    const isProd = process.env['NODE_ENV'] === 'production'
     
+    // Development uses port 3002, production uses PORT env var or default 10000
+    this.port = isDev 
+      ? parseInt(process.env['WS_PORT'] || '3002')
+      : parseInt(process.env['PORT'] || '10000')
+    
+    console.log(`🔧 Environment: NODE_ENV=${process.env['NODE_ENV']}, isDev=${isDev}, isProd=${isProd}`)
     console.log(`🔧 Port configuration: HTTP=${this.port}, WebSocket=${this.port}`)
-    console.log(`🔧 Environment: PORT=${process.env['PORT']}, SIGMASOCKETS_WS_PORT=${process.env['SIGMASOCKETS_WS_PORT']}`)
-    console.log(`🔧 Render.com assigned port: ${process.env['PORT'] || 'NOT SET (using default 10000)'}`)
+    console.log(`🔧 Environment variables: PORT=${process.env['PORT']}, WS_PORT=${process.env['WS_PORT']}`)
     console.log(`🔧 Final port being used: ${this.port}`)
+    console.log(`🔧 Debug mode: ${isDev}`)
     console.log('Creating SigmaSocketServer...')
     try {
       this.wsServer = new SigmaSocketServer({
         port: this.port,
-        host: '0.0.0.0', // Must bind to 0.0.0.0 for Render.com HTTP requests
+        host: isProd ? '0.0.0.0' : 'localhost',
         heartbeatInterval: parseInt(process.env['SIGMASOCKETS_HEARTBEAT_INTERVAL'] || '30000'),
         sessionTimeout: parseInt(process.env['SIGMASOCKETS_SESSION_TIMEOUT'] || '300000'),
         maxConnections: parseInt(process.env['SIGMASOCKETS_MAX_CONNECTIONS'] || '1000'),
@@ -68,7 +76,7 @@ class ChatServer {
       const url = req.url || '/'
       
       // Set CORS headers
-      res.setHeader('Access-Control-Allow-Origin', process.env['SIGMASOCKETS_CORS_ORIGIN'] || '*')
+      res.setHeader('Access-Control-Allow-Origin', process.env['CORS_ORIGIN'] || '*')
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
       
@@ -118,6 +126,10 @@ class ChatServer {
                              ext === 'ttf' ? 'font/ttf' :
                              ext === 'eot' ? 'application/vnd.ms-fontobject' :
                              ext === 'svg' ? 'image/svg+xml' :
+                             ext === 'png' ? 'image/png' :
+                             ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+                             ext === 'gif' ? 'image/gif' :
+                             ext === 'ico' ? 'image/x-icon' :
                              ext === 'webmanifest' ? 'application/manifest+json' :
                              'application/octet-stream'
           res.writeHead(200, { 'Content-Type': contentType })

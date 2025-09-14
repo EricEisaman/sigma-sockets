@@ -1,0 +1,25 @@
+{
+  "testId": "flatbuffers_test_1757871867945",
+  "timestamp": "2025-09-14T17:44:27.945Z",
+  "results": [
+    {
+      "testName": "FlatBuffers Transmission Test",
+      "timestamp": "2025-09-14T17:44:45.150Z",
+      "success": false,
+      "error": "Waiting failed: 15000ms exceeded",
+      "details": {
+        "connectionEstablished": false,
+        "flatBuffersFormat": "Test failed due to connection error"
+      }
+    },
+    {
+      "testName": "Message Format Detection Test",
+      "timestamp": "2025-09-14T17:45:01.301Z",
+      "success": false,
+      "error": "Waiting failed: 15000ms exceeded",
+      "details": {
+        "flatBuffersFormat": "Test failed due to error"
+      }
+    }
+  ]
+}

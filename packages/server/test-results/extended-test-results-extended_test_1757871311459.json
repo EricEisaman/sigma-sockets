@@ -1,0 +1,34 @@
+{
+  "sessionId": "extended_test_1757871311459",
+  "timestamp": "2025-09-14T17:35:11.459Z",
+  "testDuration": 30000,
+  "connections": [],
+  "keepAliveStats": {
+    "totalKeepAlives": 0,
+    "keepAlivesPerConnection": {},
+    "averageKeepAliveInterval": 2000,
+    "keepAliveSuccessRate": 100
+  },
+  "performanceMetrics": {
+    "totalConnections": 10,
+    "successfulConnections": 0,
+    "failedConnections": 10,
+    "averageConnectionTime": 0,
+    "maxConcurrentConnections": 10
+  },
+  "flatBuffersTests": {
+    "transmissionTest": {
+      "testName": "FlatBuffers Transmission Test",
+      "timestamp": "2025-09-14T17:41:19.939Z",
+      "success": false,
+      "error": "Runtime.callFunctionOn timed out. Increase the 'protocolTimeout' setting in launch/connect calls for a higher timeout if needed."
+    },
+    "formatDetectionTest": {
+      "testName": "FlatBuffers Format Detection Test",
+      "timestamp": "2025-09-14T17:44:22.112Z",
+      "success": false,
+      "error": "Runtime.callFunctionOn timed out. Increase the 'protocolTimeout' setting in launch/connect calls for a higher timeout if needed."
+    },
+    "binaryDataVerification": null
+  }
+}

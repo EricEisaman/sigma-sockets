@@ -1,0 +1,49 @@
+{
+  "sessionId": "test_1757853439024",
+  "timestamp": "2025-09-14T12:37:31.189Z",
+  "results": {
+    "startTime": 1757853439024,
+    "endTime": 1757853451186,
+    "totalTests": 5,
+    "successfulTests": 5,
+    "successRate": 100,
+    "testResults": [
+      {
+        "testName": "Basic WebSocket Connection",
+        "success": true,
+        "duration": 171,
+        "details": "Successfully established WebSocket connection"
+      },
+      {
+        "testName": "WebSocket Reconnection",
+        "success": true,
+        "duration": 2118,
+        "details": "Successfully handled WebSocket reconnection"
+      },
+      {
+        "testName": "Multiple WebSocket Connections",
+        "success": true,
+        "duration": 310,
+        "details": "Successfully established 3 concurrent connections"
+      },
+      {
+        "testName": "Connection Quality Monitoring",
+        "success": true,
+        "duration": 3080,
+        "details": "Connection quality monitoring active"
+      },
+      {
+        "testName": "Keep-Alive Mechanisms",
+        "success": true,
+        "duration": 5130,
+        "details": "Keep-alive mechanisms working"
+      }
+    ],
+    "totalDuration": 12162
+  },
+  "serverConfig": {
+    "port": 8087,
+    "heartbeatInterval": 2000,
+    "adaptiveHeartbeatEnabled": true
+  }
+}

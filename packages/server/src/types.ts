@@ -6,6 +6,13 @@ export interface SigmaSocketServerConfig {
   maxConnections?: number;
   bufferSize?: number;
   requestHandler?: (req: any, res: any) => void;
+  // Enhanced connection quality settings
+  minHeartbeatInterval?: number;
+  maxHeartbeatInterval?: number;
+  latencyWindowSize?: number;
+  qualityCheckInterval?: number;
+  adaptiveHeartbeatEnabled?: boolean;
+  connectionQualityThreshold?: number;
 }
 
 export interface RequiredSigmaSocketServerConfig {
@@ -15,6 +22,13 @@ export interface RequiredSigmaSocketServerConfig {
   sessionTimeout: number;
   maxConnections: number;
   bufferSize: number;
+  // Enhanced connection quality settings
+  minHeartbeatInterval: number;
+  maxHeartbeatInterval: number;
+  latencyWindowSize: number;
+  qualityCheckInterval: number;
+  adaptiveHeartbeatEnabled: boolean;
+  connectionQualityThreshold: number;
 }
 
 import { WebSocket } from 'ws';
@@ -27,6 +41,32 @@ export interface ClientSession {
   ws: WebSocket;
   isAlive: boolean;
   messageBuffer: Uint8Array[];
+  // Enhanced connection quality metrics
+  connectionQuality: ConnectionQuality;
+  latencyHistory: number[];
+  lastPingTime: number;
+  missedHeartbeats: number;
+  adaptiveHeartbeatInterval: number;
+  connectionScore: number;
+}
+
+export interface ConnectionQuality {
+  latency: number;
+  jitter: number;
+  packetLoss: number;
+  bandwidth: number;
+  stability: number;
+  lastUpdated: Date;
+}
+
+export interface ConnectionQualityMetrics {
+  averageLatency: number;
+  maxLatency: number;
+  minLatency: number;
+  jitter: number;
+  packetLossRate: number;
+  connectionStability: number;
+  qualityScore: number;
 }
 
 export interface MessageHandler {

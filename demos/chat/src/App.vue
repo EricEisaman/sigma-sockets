@@ -259,12 +259,13 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import type { MessageType, ColorMessage, ChatMessage, UserCountMessage, AllMessageTypes } from './types.js'
+import type { MessageType as ChatMessageType, ColorMessage, ChatMessage, UserCountMessage, AllMessageTypes } from './types.js'
 import { parseColorCommand } from './color-parser.js'
 import { SigmaSocketClient, ConnectionStatus } from 'sigmasockets-client'
 import * as flatbuffers from 'flatbuffers'
 import { Message } from './generated/sigma-sockets/message.js'
-import { MessageType as FlatBuffersMessageType } from './generated/sigma-sockets/message-type.js'
+import { MessageType } from './generated/sigma-sockets/message-type.js'
+import { MessageData } from './generated/sigma-sockets/message-data.js'
 import { DataMessage } from './generated/sigma-sockets/data-message.js'
 
 // Available colors for the color picker
@@ -287,11 +288,11 @@ const username = ref(`User_${Math.random().toString(36).substr(2, 9)}`)
 let client: SigmaSocketClient | null = null
 
 // Message handling
-const addMessage = (message: MessageType) => {
+const addMessage = (message: ChatMessageType) => {
   messages.value.push({
     ...message,
     id: Date.now() + Math.random()
-  } as MessageType & { id: number })
+  } as ChatMessageType & { id: number })
   
   nextTick(() => {
     if (messagesContainer.value) {
@@ -300,7 +301,7 @@ const addMessage = (message: MessageType) => {
   })
 }
 
-const getMessageColor = (message: MessageType): string => {
+const getMessageColor = (message: ChatMessageType): string => {
   if (message.type === 'color') {
     const colorMessage = message as ColorMessage
     return colorMessage.data.color
@@ -308,7 +309,7 @@ const getMessageColor = (message: MessageType): string => {
   return 'primary'
 }
 
-const getMessageVariant = (message: MessageType): string => {
+const getMessageVariant = (message: ChatMessageType): string => {
   if (message.type === 'color') {
     return 'tonal'
   }
@@ -342,7 +343,7 @@ const sendMessage = () => {
   const input = messageInput.value.trim()
   const colorParse = parseColorCommand(input)
 
-  let message: MessageType
+  let message: ChatMessageType
 
   if (colorParse.isColorCommand && colorParse.color && colorParse.message) {
     message = {
@@ -365,16 +366,20 @@ const sendMessage = () => {
     } as ChatMessage
   }
 
-  // Create FlatBuffers message properly
-  const builder = new flatbuffers.Builder(1024)
-  const payload = builder.createString(JSON.stringify(message))
+  // Create proper FlatBuffers message with binary payload
+  const messageBytes = new TextEncoder().encode(JSON.stringify(message))
+  const builder = new flatbuffers.Builder(1024 + messageBytes.length)
+  const payload = DataMessage.createPayloadVector(builder, messageBytes)
   
   DataMessage.startDataMessage(builder)
   DataMessage.addPayload(builder, payload)
+  DataMessage.addMessageId(builder, BigInt(Date.now()))
+  DataMessage.addTimestamp(builder, BigInt(Date.now()))
   const dataMessage = DataMessage.endDataMessage(builder)
   
   Message.startMessage(builder)
-  Message.addType(builder, FlatBuffersMessageType.Data)
+  Message.addType(builder, MessageType.Data)
+  Message.addDataType(builder, MessageData.DataMessage)
   Message.addData(builder, dataMessage)
   const messageObj = Message.endMessage(builder)
   
@@ -403,12 +408,12 @@ const connect = async () => {
   try {
     connectionStatus.value = ConnectionStatus.Connecting
     
-    // Use production WebSocket URL or fallback to localhost for development
+    // Use environment-based WebSocket URL configuration
     const wsUrl = import.meta.env.PROD 
       ? `wss://${window.location.host}` 
-      : 'ws://localhost:3001'
+      : `ws://localhost:${import.meta.env.VITE_WS_PORT || '3002'}`
     
-    // Use debug mode in development, false in production
+    // Use debug mode based on environment
     const isDebugMode = import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true'
     
     client = new SigmaSocketClient({
@@ -444,7 +449,7 @@ const connect = async () => {
           userCount.value = userCountMessage.count
         } else if (message.type === 'chat' || message.type === 'color') {
           // Only add chat messages to the messages array
-          addMessage(message as MessageType)
+          addMessage(message as ChatMessageType)
         }
       } catch (error) {
         console.error('Error parsing message:', error)

@@ -10,8 +10,12 @@ import { HeartbeatMessage } from './generated/sigma-sockets/heartbeat-message';
 import { ReconnectMessage } from './generated/sigma-sockets/reconnect-message';
 import { DisconnectMessage } from './generated/sigma-sockets/disconnect-message';
 import { ErrorMessage } from './generated/sigma-sockets/error-message';
-import { MessageValidator } from './validation';
+// import { MessageValidator } from './validation'; // Not needed with hybrid handler
 import { SecurityManager, createSecureWebSocketConfig, defaultSecurityConfig, type SecurityConfig } from './security';
+import { ConnectionQualityManager } from './connection-quality';
+import { AdvancedFeaturesManager } from './advanced-features';
+import { PersistentConnectionManager } from './persistent-connection-manager';
+import { HybridMessageHandler } from './hybrid-message-handler';
 // Note: FlatBuffers generator is only available in Node.js environments
 // import { generateFlatBuffers, getDefaultSchema, type FlatBuffersConfig, type FlatBuffersResult } from './flatbuffers-generator';
 import type {
@@ -35,6 +39,9 @@ export class SigmaSocketServer {
   private stats: ServerStats;
   private startTime: Date;
   private securityManager: SecurityManager;
+  private connectionQualityManager: ConnectionQualityManager;
+  private advancedFeaturesManager: AdvancedFeaturesManager;
+  private persistentConnectionManager: PersistentConnectionManager;
 
   constructor(config: SigmaSocketServerConfig, securityConfig?: SecurityConfig) {
     const { requestHandler, ...configWithoutHandler } = config;
@@ -45,12 +52,38 @@ export class SigmaSocketServer {
       heartbeatInterval: configWithoutHandler.heartbeatInterval ?? 30000,
       sessionTimeout: configWithoutHandler.sessionTimeout ?? 300000,
       maxConnections: configWithoutHandler.maxConnections ?? 1000,
-      bufferSize: configWithoutHandler.bufferSize ?? 4096
+      bufferSize: configWithoutHandler.bufferSize ?? 4096,
+      // Enhanced connection quality settings
+      minHeartbeatInterval: configWithoutHandler.minHeartbeatInterval ?? 5000,
+      maxHeartbeatInterval: configWithoutHandler.maxHeartbeatInterval ?? 60000,
+      latencyWindowSize: configWithoutHandler.latencyWindowSize ?? 10,
+      qualityCheckInterval: configWithoutHandler.qualityCheckInterval ?? 10000,
+      adaptiveHeartbeatEnabled: configWithoutHandler.adaptiveHeartbeatEnabled ?? true,
+      connectionQualityThreshold: configWithoutHandler.connectionQualityThreshold ?? 0.7
     };
     this.requestHandler = requestHandler;
 
     // Initialize security manager
     this.securityManager = new SecurityManager(securityConfig);
+
+    // Initialize connection quality manager
+    this.connectionQualityManager = new ConnectionQualityManager(
+      this.config.minHeartbeatInterval,
+      this.config.maxHeartbeatInterval,
+      this.config.latencyWindowSize,
+      this.config.connectionQualityThreshold
+    );
+
+    // Initialize advanced features manager
+    this.advancedFeaturesManager = new AdvancedFeaturesManager(this.config.maxConnections);
+
+    // Initialize persistent connection manager
+    this.persistentConnectionManager = new PersistentConnectionManager(
+      this.config.maxConnections,
+      this.config.sessionTimeout,
+      true, // adaptive timeout enabled
+      true  // LRU enabled
+    );
 
     this.startTime = new Date();
     this.stats = {
@@ -248,11 +281,21 @@ export class SigmaSocketServer {
       });
 
       ws.on('pong', () => {
-        // Mark client as alive on pong response
+        // Mark client as alive on pong response and record latency
         const client = this.findClientByWebSocket(ws);
         if (client) {
           client.isAlive = true;
           client.lastHeartbeat = new Date();
+          
+          // Record ping-pong latency for connection quality monitoring
+          if (client.lastPingTime > 0) {
+            const latency = Date.now() - client.lastPingTime;
+            this.connectionQualityManager.recordPingPongLatency(client, latency);
+            client.lastPingTime = 0; // Reset ping time
+          }
+          
+          // Reset missed heartbeats counter
+          this.connectionQualityManager.resetMissedHeartbeats(client);
         }
       });
     });
@@ -260,6 +303,84 @@ export class SigmaSocketServer {
     this.wsServer.on('error', (error) => {
       this.emit('error', error);
     });
+  }
+
+  private handleJSONMessage(ws: WebSocket, hybridResult: any): void {
+    const client = this.findClientByWebSocket(ws);
+    const clientId = client?.id || 'unknown';
+    
+    console.log(`📥 Handling JSON message from ${clientId}:`, hybridResult.data);
+    
+    // Handle different JSON message types
+    switch (hybridResult.messageType) {
+      case MessageType.Connect:
+        // For JSON connect messages, create a client session
+        if (!client) {
+          this.handleConnectMessage(ws, null as any); // Create session through existing handler
+        }
+        break;
+        
+      case MessageType.Data:
+        // Handle data messages (like test messages)
+        this.handleJSONDataMessage(ws, hybridResult.data);
+        break;
+        
+      case MessageType.Heartbeat:
+        // Handle heartbeat messages
+        this.handleJSONHeartbeatMessage(ws, hybridResult.data);
+        break;
+        
+      default:
+        console.log(`📥 Unhandled JSON message type: ${hybridResult.messageType}`);
+    }
+  }
+
+  private handleJSONDataMessage(ws: WebSocket, data: any): void {
+    const client = this.findClientByWebSocket(ws);
+    const clientId = client?.id || 'unknown';
+    
+    console.log(`📥 JSON Data message from ${clientId}:`, data);
+    
+    // Send response back to client
+    const response = {
+      type: 'response',
+      originalType: data.type,
+      timestamp: Date.now(),
+      received: true,
+      clientId: clientId
+    };
+    
+    // Send as JSON response
+    ws.send(JSON.stringify(response));
+    
+    // Update stats
+    this.stats.messagesReceived++;
+  }
+
+  private handleJSONHeartbeatMessage(ws: WebSocket, _data: any): void {
+    const client = this.findClientByWebSocket(ws);
+    if (client) {
+      client.isAlive = true;
+      client.lastHeartbeat = new Date();
+      
+      // Record ping-pong latency if we have ping time
+      if (client.lastPingTime) {
+        const latency = Date.now() - client.lastPingTime;
+        this.connectionQualityManager.recordPingPongLatency(client, latency);
+        client.lastPingTime = 0;
+      }
+      
+      // Reset missed heartbeats
+      client.missedHeartbeats = 0;
+    }
+    
+    // Send heartbeat response
+    const response = {
+      type: 'heartbeat_response',
+      timestamp: Date.now()
+    };
+    
+    ws.send(JSON.stringify(response));
   }
 
   private handleWebSocketMessage(ws: WebSocket, data: Buffer): void {
@@ -295,16 +416,24 @@ export class SigmaSocketServer {
         return;
       }
 
-      // Validate message structure and content
-      const validation = MessageValidator.validateMessage(data, clientId);
-      if (!validation.isValid) {
-        this.securityManager.logSecurityEvent('invalid_message', clientId, validation.error);
-        console.warn(`⚠️ Invalid message from ${clientId}: ${validation.error}`);
+      // Use hybrid message handler to support both JSON and FlatBuffers
+      const hybridResult = HybridMessageHandler.handleMessage(new Uint8Array(data));
+      if (!hybridResult.success) {
+        this.securityManager.logSecurityEvent('invalid_message', clientId, hybridResult.error);
+        console.warn(`⚠️ Invalid message from ${clientId}: ${hybridResult.error}`);
         return;
       }
 
-      // Process validated message
-      const buffer = new Uint8Array(validation.sanitizedData || data);
+      console.log(`✅ Successfully parsed ${hybridResult.isJSON ? 'JSON' : 'FlatBuffers'} message:`, hybridResult.messageType);
+
+      // For JSON messages, we need to handle them differently
+      if (hybridResult.isJSON) {
+        this.handleJSONMessage(ws, hybridResult);
+        return;
+      }
+
+      // For FlatBuffers messages, continue with existing logic
+      const buffer = new Uint8Array(data);
       const buf = new flatbuffers.ByteBuffer(buffer);
       const message = Message.getRootAsMessage(buf);
 
@@ -381,11 +510,31 @@ export class SigmaSocketServer {
       connectedAt: new Date(),
       lastHeartbeat: new Date(),
       isAlive: true,
-      messageBuffer: []
+      messageBuffer: [],
+      // Initialize connection quality tracking
+      connectionQuality: {
+        latency: 0,
+        jitter: 0,
+        packetLoss: 0,
+        bandwidth: 0,
+        stability: 1.0,
+        lastUpdated: new Date()
+      },
+      latencyHistory: [],
+      lastPingTime: 0,
+      missedHeartbeats: 0,
+      adaptiveHeartbeatInterval: this.config.minHeartbeatInterval,
+      connectionScore: 1.0
     };
+
+    // Initialize connection quality tracking
+    this.connectionQualityManager.initializeClientSession(client);
 
     this.clients.set(sessionId, client);
     this.stats.totalConnections++;
+
+    // Add to advanced features connection pool
+    this.advancedFeaturesManager.addToConnectionPool(sessionId, client);
 
     console.log(`Client connected: ${sessionId} (version: ${clientVersion})`);
     this.emit('connection', client);
@@ -520,6 +669,10 @@ export class SigmaSocketServer {
       client.ws.close(1000, reason);
     }
     this.clients.delete(client.id);
+    
+    // Remove from advanced features connection pool
+    this.advancedFeaturesManager.removeFromConnectionPool(client.id);
+    
     this.emit('disconnection', client, reason);
   }
 
@@ -563,15 +716,22 @@ export class SigmaSocketServer {
     this.heartbeatTimer = setInterval(() => {
       this.clients.forEach((client) => {
         if (!client.isAlive) {
-          // Client didn't respond to previous ping, disconnect
-          this.disconnectClient(client, 'Heartbeat timeout');
-          return;
+          // Client didn't respond to previous ping, record missed heartbeat
+          this.connectionQualityManager.recordMissedHeartbeat(client);
+          
+          // Check if connection quality is too poor
+          if (this.connectionQualityManager.getRecommendedAction(client) === 'disconnect') {
+            this.disconnectClient(client, 'Connection quality too poor');
+            return;
+          }
         }
 
         // Mark as not alive and send ping
         client.isAlive = false;
         if (client.ws.readyState === WebSocket.OPEN) {
-          client.ws.pong();
+          // Record ping time for latency calculation
+          client.lastPingTime = Date.now();
+          client.ws.ping(); // Fixed: use ping() instead of pong()
         }
       });
     }, this.config.heartbeatInterval);
@@ -618,6 +778,132 @@ export class SigmaSocketServer {
     return this.httpServer.listening;
   }
 
+  /**
+   * Get connection quality metrics for a specific client
+   */
+  getConnectionQualityMetrics(sessionId: string): any | null {
+    const client = this.clients.get(sessionId);
+    if (!client) {
+      return null;
+    }
+    return this.connectionQualityManager.getConnectionQualityMetrics(client);
+  }
+
+  /**
+   * Get all connection quality metrics
+   */
+  getAllConnectionQualityMetrics(): Map<string, any> {
+    const metrics = new Map<string, any>();
+    this.clients.forEach((client, sessionId) => {
+      metrics.set(sessionId, this.connectionQualityManager.getConnectionQualityMetrics(client));
+    });
+    return metrics;
+  }
+
+  /**
+   * Get adaptive heartbeat interval for a specific client
+   */
+  getAdaptiveHeartbeatInterval(sessionId: string): number | null {
+    const client = this.clients.get(sessionId);
+    if (!client) {
+      return null;
+    }
+    return this.connectionQualityManager.getAdaptiveHeartbeatInterval(client);
+  }
+
+  /**
+   * Advanced Features - IoT Device Management
+   */
+  registerIoTDevice(sessionId: string, deviceInfo: any): boolean {
+    const client = this.clients.get(sessionId);
+    if (!client) {
+      return false;
+    }
+    
+    this.advancedFeaturesManager.registerIoTDevice(sessionId, deviceInfo);
+    return true;
+  }
+
+  getIoTDeviceInfo(sessionId: string): any | null {
+    return this.advancedFeaturesManager.getIoTDeviceInfo(sessionId);
+  }
+
+  /**
+   * Advanced Features - Hybrid Protocol Support
+   */
+  enableHybridProtocol(sessionId: string, config: any): boolean {
+    const client = this.clients.get(sessionId);
+    if (!client) {
+      return false;
+    }
+    
+    this.advancedFeaturesManager.enableHybridProtocol(sessionId, config);
+    return true;
+  }
+
+  /**
+   * Advanced Features - Real-time Analytics
+   */
+  getRealTimeAnalytics(): any {
+    return this.advancedFeaturesManager.generateRealTimeAnalytics();
+  }
+
+  /**
+   * Advanced Features - Load Balancing Metrics
+   */
+  getLoadBalancingMetrics(): any {
+    return this.advancedFeaturesManager.calculateLoadBalancingMetrics();
+  }
+
+  /**
+   * Advanced Features - Connection Pool Statistics
+   */
+  getConnectionPoolStats(): any {
+    return this.advancedFeaturesManager.getConnectionPoolStats();
+  }
+
+  /**
+   * Advanced Features - Security Validation
+   */
+  validateConnectionSecurity(ws: WebSocket, request: any): any {
+    return this.advancedFeaturesManager.validateConnectionSecurity(ws, request);
+  }
+
+  /**
+   * Advanced Features - Binary Data Optimization
+   */
+  optimizeBinaryDataTransfer(data: Uint8Array, compressionEnabled: boolean = true): any {
+    return this.advancedFeaturesManager.optimizeBinaryDataTransfer(data, compressionEnabled);
+  }
+
+  /**
+   * Persistent Connection Management - Get connection pool statistics
+   */
+  getConnectionPoolStatistics(): any {
+    return this.persistentConnectionManager.getStatistics();
+  }
+
+  /**
+   * Persistent Connection Management - Get client behavior insights
+   */
+  getClientBehaviorInsights(): any {
+    return this.persistentConnectionManager.getClientBehaviorInsights();
+  }
+
+  /**
+   * Persistent Connection Management - Get optimization recommendations
+   */
+  getOptimizationRecommendations(): any {
+    return this.persistentConnectionManager.optimizeConnectionPool();
+  }
+
+  /**
+   * Persistent Connection Management - Clean up old behavior data
+   */
+  cleanupOldBehaviorData(maxAge?: number): void {
+    this.persistentConnectionManager.cleanupOldBehaviorData(maxAge);
+  }
+
   private generateMessageId(): bigint {
     return BigInt(Date.now()) * 1000n + BigInt(Math.floor(Math.random() * 1000));
   }
@@ -637,5 +923,11 @@ export class SigmaSocketServer {
 }
 
 // Export types
-export type { ClientSession, ServerStats, SigmaSocketServerConfig } from './types';
+export type { 
+  ClientSession, 
+  ServerStats, 
+  SigmaSocketServerConfig, 
+  ConnectionQuality, 
+  ConnectionQualityMetrics 
+} from './types';
 

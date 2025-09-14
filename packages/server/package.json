@@ -63,17 +63,19 @@
   },
   "dependencies": {
     "flatbuffers": "^25.2.10",
-    "ws": "^8.14.0",
-    "sigmasockets-types": "^1.0.0"
+    "sigmasockets-types": "^1.0.0",
+    "ws": "^8.14.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/ws": "^8.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "puppeteer": "24.20.0",
+    "sqlite3": "5.1.7",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
-    "vitest": "^1.0.0",
-    "eslint": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0"
+    "vitest": "^1.0.0"
   }
 }

@@ -2,6 +2,7 @@ import { SigmaSocketClient, ConnectionStatus } from 'sigmasockets-client'
 import * as flatbuffers from 'flatbuffers'
 import { Message } from './generated/sigma-sockets/message.js'
 import { MessageType } from './generated/sigma-sockets/message-type.js'
+import { MessageData } from './generated/sigma-sockets/message-data.js'
 import { DataMessage } from './generated/sigma-sockets/data-message.js'
 import { parseColorCommand, getVuetifyColorClass } from './color-parser.js'
 import type { MessageType as ChatMessageType, ColorMessage, ChatMessage } from './types.js'
@@ -34,11 +35,17 @@ class ChatDemo {
   }
 
   private setupClient() {
+    // Use environment-based WebSocket URL configuration
+    const wsUrl = process.env['NODE_ENV'] === 'production'
+      ? `wss://${process.env['HOST'] || 'localhost'}:${process.env['PORT'] || '10000'}`
+      : `ws://localhost:${process.env['WS_PORT'] || '3002'}`
+    
     this.client = new SigmaSocketClient({
-      url: 'ws://localhost:3001',
+      url: wsUrl,
       reconnectInterval: 1000,
       maxReconnectAttempts: 10,
-      heartbeatInterval: 30000
+      heartbeatInterval: 30000,
+      debug: process.env['NODE_ENV'] === 'development'
     })
 
     this.client.on('connection', (status: ConnectionStatus) => {
@@ -147,16 +154,20 @@ class ChatDemo {
     // Show the message immediately in the UI
     this.addStructuredMessage(structuredMessage, true)
 
-    // Create FlatBuffers message
-    const builder = new flatbuffers.Builder(1024)
-    const payload = builder.createString(JSON.stringify(structuredMessage))
+    // Create proper FlatBuffers message with binary payload
+    const messageBytes = new TextEncoder().encode(JSON.stringify(structuredMessage))
+    const builder = new flatbuffers.Builder(1024 + messageBytes.length)
+    const payload = DataMessage.createPayloadVector(builder, messageBytes)
     
     DataMessage.startDataMessage(builder)
     DataMessage.addPayload(builder, payload)
+    DataMessage.addMessageId(builder, BigInt(Date.now()))
+    DataMessage.addTimestamp(builder, BigInt(Date.now()))
     const dataMessage = DataMessage.endDataMessage(builder)
     
     Message.startMessage(builder)
     Message.addType(builder, MessageType.Data)
+    Message.addDataType(builder, MessageData.DataMessage)
     Message.addData(builder, dataMessage)
     const messageObj = Message.endMessage(builder)
     

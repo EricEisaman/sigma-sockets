@@ -156,6 +156,31 @@ export interface PerformanceMetrics {
 }
 
 /**
+ * Connection quality enumeration
+ */
+export enum ConnectionQuality {
+  Excellent = 'excellent',
+  Good = 'good',
+  Fair = 'fair',
+  Poor = 'poor',
+  Critical = 'critical',
+}
+
+/**
+ * Connection quality metrics interface
+ */
+export interface ConnectionQualityMetrics {
+  readonly quality: ConnectionQuality;
+  readonly latency: number;
+  readonly jitter: number;
+  readonly packetLoss: number;
+  readonly bandwidth: number;
+  readonly stability: number;
+  readonly score: number;
+  readonly lastUpdated: number;
+}
+
+/**
  * FlatBuffer message interface
  */
 export interface FlatBufferMessage {

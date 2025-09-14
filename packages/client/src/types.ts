@@ -13,6 +13,11 @@ export interface SigmaSocketConfig {
   heartbeatInterval?: number;
   sessionTimeout?: number;
   debug?: boolean;
+  // Enhanced connection quality settings
+  minHeartbeatInterval?: number;
+  maxHeartbeatInterval?: number;
+  adaptiveHeartbeatEnabled?: boolean;
+  connectionQualityMonitoring?: boolean;
 }
 
 export interface MessageCallback<T = Uint8Array> {
@@ -41,5 +46,29 @@ export interface ClientSession {
   lastMessageId: bigint;
   connectedAt: Date;
   lastHeartbeat: Date;
+  // Enhanced connection quality metrics
+  connectionQuality?: ConnectionQuality;
+  latencyHistory?: number[];
+  connectionScore?: number;
+  adaptiveHeartbeatInterval?: number;
+}
+
+export interface ConnectionQuality {
+  latency: number;
+  jitter: number;
+  packetLoss: number;
+  bandwidth: number;
+  stability: number;
+  lastUpdated: Date;
+}
+
+export interface ConnectionQualityMetrics {
+  averageLatency: number;
+  maxLatency: number;
+  minLatency: number;
+  jitter: number;
+  packetLossRate: number;
+  connectionStability: number;
+  qualityScore: number;
 }
 

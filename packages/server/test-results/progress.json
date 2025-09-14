@@ -1,0 +1,69 @@
+{
+  "reportId": "report_1757870075450",
+  "progress": 100,
+  "currentStep": "Report generation completed successfully",
+  "status": "COMPLETED",
+  "timestamp": "2025-09-14T17:14:42.724Z",
+  "history": [
+    {
+      "progress": 0,
+      "step": "Initializing report generation",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:35.451Z"
+    },
+    {
+      "progress": 20,
+      "step": "Generating HTML report content",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:35.451Z"
+    },
+    {
+      "progress": 30,
+      "step": "Launching browser for PDF generation",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:35.493Z"
+    },
+    {
+      "progress": 40,
+      "step": "Creating new browser page",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:36.674Z"
+    },
+    {
+      "progress": 50,
+      "step": "Loading HTML content into browser",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:36.787Z"
+    },
+    {
+      "progress": 60,
+      "step": "Rendering Mermaid diagrams",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:38.701Z"
+    },
+    {
+      "progress": 70,
+      "step": "Generating PDF document",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:41.703Z"
+    },
+    {
+      "progress": 80,
+      "step": "PDF generation completed",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:42.602Z"
+    },
+    {
+      "progress": 90,
+      "step": "Generating text report",
+      "status": "IN_PROGRESS",
+      "timestamp": "2025-09-14T17:14:42.723Z"
+    },
+    {
+      "progress": 100,
+      "step": "Report generation completed successfully",
+      "status": "COMPLETED",
+      "timestamp": "2025-09-14T17:14:42.724Z"
+    }
+  ]
+}

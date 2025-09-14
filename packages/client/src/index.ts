@@ -14,12 +14,23 @@ import type {
   ConnectionCallback,
   ReconnectionInfo,
   SigmaSocketEvents,
-  ClientSession
+  ClientSession,
+  ConnectionQuality,
+  ConnectionQualityMetrics
 } from './types';
 
 // Re-export types and values for external use
 export { ConnectionStatus };
-export type { SigmaSocketConfig, MessageCallback, ConnectionCallback, ReconnectionInfo, SigmaSocketEvents, ClientSession };
+export type { 
+  SigmaSocketConfig, 
+  MessageCallback, 
+  ConnectionCallback, 
+  ReconnectionInfo, 
+  SigmaSocketEvents, 
+  ClientSession,
+  ConnectionQuality,
+  ConnectionQualityMetrics
+};
 
 export class SigmaSocketClient {
   private ws: WebSocket | null = null;
@@ -33,6 +44,10 @@ export class SigmaSocketClient {
   private lastHeartbeatReceived: Date | null = null;
   private messageIdCounter = 0n;
   private eventListeners: Map<keyof SigmaSocketEvents, Set<Function>> = new Map();
+  // Enhanced connection quality monitoring
+  private latencyHistory: number[] = [];
+  private connectionQualityMetrics: ConnectionQualityMetrics | null = null;
+  private adaptiveHeartbeatInterval: number;
 
   constructor(config: SigmaSocketConfig) {
     this.config = {
@@ -41,8 +56,16 @@ export class SigmaSocketClient {
       maxReconnectAttempts: config.maxReconnectAttempts ?? 10,
       heartbeatInterval: config.heartbeatInterval ?? 30000,
       sessionTimeout: config.sessionTimeout ?? 300000,
-      debug: config.debug ?? false
+      debug: config.debug ?? false,
+      // Enhanced connection quality settings
+      minHeartbeatInterval: config.minHeartbeatInterval ?? 5000,
+      maxHeartbeatInterval: config.maxHeartbeatInterval ?? 60000,
+      adaptiveHeartbeatEnabled: config.adaptiveHeartbeatEnabled ?? true,
+      connectionQualityMonitoring: config.connectionQualityMonitoring ?? true
     };
+
+    // Initialize adaptive heartbeat interval
+    this.adaptiveHeartbeatInterval = this.config.heartbeatInterval;
 
     // Initialize event listener sets
     this.eventListeners.set('connection', new Set());
@@ -276,6 +299,27 @@ export class SigmaSocketClient {
     return '1.0.15';
   }
 
+  /**
+   * Get connection quality metrics
+   */
+  public getConnectionQualityMetrics(): ConnectionQualityMetrics | null {
+    return this.connectionQualityMetrics;
+  }
+
+  /**
+   * Get current adaptive heartbeat interval
+   */
+  public getAdaptiveHeartbeatInterval(): number {
+    return this.adaptiveHeartbeatInterval;
+  }
+
+  /**
+   * Get latency history
+   */
+  public getLatencyHistory(): number[] {
+    return [...this.latencyHistory];
+  }
+
   private onWebSocketOpen(): void {
     this.reconnectAttempts = 0;
     
@@ -323,7 +367,19 @@ export class SigmaSocketClient {
         id: sessionId.toString(),
         lastMessageId: 0n,
         connectedAt: new Date(),
-        lastHeartbeat: new Date()
+        lastHeartbeat: new Date(),
+        // Initialize connection quality tracking
+        connectionQuality: {
+          latency: 0,
+          jitter: 0,
+          packetLoss: 0,
+          bandwidth: 0,
+          stability: 1.0,
+          lastUpdated: new Date()
+        },
+        latencyHistory: [],
+        connectionScore: 1.0,
+        adaptiveHeartbeatInterval: this.config.heartbeatInterval
       };
     }
 
@@ -507,7 +563,7 @@ export class SigmaSocketClient {
   }
 
   private startHeartbeat(): void {
-    this.heartbeatTimer = setInterval(() => {
+    const sendHeartbeat = () => {
       if (this.status === ConnectionStatus.Connected && this.ws) {
         const builder = new flatbuffers.Builder(256);
         const timestamp = BigInt(Date.now());
@@ -529,11 +585,53 @@ export class SigmaSocketClient {
         if (this.config.debug && Math.random() < 0.1) { // 10% chance to log
           console.log('💓 Heartbeat sent');
         }
+
+        // Schedule next heartbeat with adaptive interval
+        if (this.config.adaptiveHeartbeatEnabled) {
+          this.scheduleNextHeartbeat();
+        }
       }
-    }, this.config.heartbeatInterval);
+    };
+
+    // Send initial heartbeat
+    sendHeartbeat();
 
     // Start connection health monitoring
     this.startConnectionHealthCheck();
+  }
+
+  private scheduleNextHeartbeat(): void {
+    if (this.heartbeatTimer) {
+      clearTimeout(this.heartbeatTimer);
+    }
+
+    this.heartbeatTimer = setTimeout(() => {
+      if (this.status === ConnectionStatus.Connected && this.ws) {
+        const builder = new flatbuffers.Builder(256);
+        const timestamp = BigInt(Date.now());
+        
+        HeartbeatMessage.startHeartbeatMessage(builder);
+        HeartbeatMessage.addTimestamp(builder, timestamp);
+        const heartbeatMsg = HeartbeatMessage.endHeartbeatMessage(builder);
+
+        Message.startMessage(builder);
+        Message.addType(builder, MessageType.Heartbeat);
+        Message.addDataType(builder, MessageData.HeartbeatMessage);
+        Message.addData(builder, heartbeatMsg);
+        const message = Message.endMessage(builder);
+
+        builder.finish(message);
+        this.ws.send(builder.asUint8Array());
+        
+        // Only log heartbeat sending in debug mode occasionally to reduce spam
+        if (this.config.debug && Math.random() < 0.1) { // 10% chance to log
+          console.log('💓 Adaptive heartbeat sent');
+        }
+
+        // Schedule next heartbeat
+        this.scheduleNextHeartbeat();
+      }
+    }, this.adaptiveHeartbeatInterval);
   }
 
   private startConnectionHealthCheck(): void {

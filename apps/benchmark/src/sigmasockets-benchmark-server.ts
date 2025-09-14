@@ -1,13 +1,5 @@
 import { SigmaSocketServer } from 'sigmasockets-server';
-import { WebSocket } from 'ws';
-
-// Local type definition to avoid import issues
-interface ClientSession {
-  id: string;
-  ws: WebSocket;
-  isAlive: boolean;
-  messageBuffer: Uint8Array[];
-}
+import type { ClientSession } from 'sigmasockets-server';
 
 export class SigmaSocketsBenchmarkServer {
   private server: SigmaSocketServer;
@@ -30,11 +22,11 @@ export class SigmaSocketsBenchmarkServer {
       console.log(`SigmaSockets Client connected: ${client.id}`);
     });
 
-    this.server.on('disconnection', (client: ClientSession, reason: string) => {
-      console.log(`SigmaSockets Client disconnected: ${client.id} (${reason})`);
+    this.server.on('disconnection', (client: ClientSession, reason?: string) => {
+      console.log(`SigmaSockets Client disconnected: ${client.id} (${reason || 'unknown'})`);
     });
 
-    this.server.on('message', (client: ClientSession, data: Uint8Array, _messageId: bigint, _timestamp: bigint) => {
+    this.server.on('message', (data: Uint8Array, _messageId: bigint, _timestamp: bigint, client: ClientSession) => {
       // Echo the message back
       this.server.sendToClient(client, data);
       this.messageCount++;
